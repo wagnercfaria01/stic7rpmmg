@@ -1,0 +1,265 @@
+/* ============================================
+   LANÇAMENTO SEMANAL - TABELA COMPACTA
+   ============================================ */
+
+.secao-lancamento-semanal {
+    padding: 2rem;
+    background: #f5f7fa;
+    min-height: 100vh;
+}
+
+.header-lancamento {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header-info h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+}
+
+.header-info p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.header-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    font-size: 1.1rem;
+}
+
+.btn-exportar {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.btn-exportar:hover {
+    background: #388e3c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.filtros-lancamento {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.filtros-lancamento select {
+    padding: 0.7rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.tabela-wrapper {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+#tabelaLancamento {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#tabelaLancamento thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+#tabelaLancamento th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+#tabelaLancamento tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+}
+
+#tabelaLancamento tbody tr:hover {
+    background: #f8f9fa;
+}
+
+#tabelaLancamento tbody tr.atrasado {
+    background: #ffebee;
+}
+
+#tabelaLancamento tbody tr.atrasado:hover {
+    background: #ffcdd2;
+}
+
+#tabelaLancamento td {
+    padding: 1.2rem 1rem;
+    font-size: 0.95rem;
+}
+
+.militar-cell {
+    font-weight: 600;
+    color: #333;
+}
+
+.pm-number {
+    color: #666;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 0.2rem;
+}
+
+.horas-cell {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #667eea;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tag-atrasado {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+.tag-pendente {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.tag-lancado {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.motivo-cell {
+    max-width: 300px;
+    line-height: 1.4;
+    color: #555;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    padding: 0.6rem 0.9rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+}
+
+.btn-copiar {
+    background: #2196f3;
+    color: white;
+}
+
+.btn-copiar:hover {
+    background: #1976d2;
+    transform: scale(1.1);
+}
+
+.btn-confirmar {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-confirmar:hover {
+    background: #388e3c;
+    transform: scale(1.1);
+}
+
+.btn-confirmar:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: scale(1);
+}
+
+.btn-expandir {
+    background: #9c27b0;
+    color: white;
+}
+
+.btn-expandir:hover {
+    background: #7b1fa2;
+    transform: scale(1.1);
+}
+
+.expanded-row {
+    background: #f8f9fa;
+}
+
+.expanded-content {
+    padding: 1.5rem;
+    border-left: 4px solid #667eea;
+}
+
+.expanded-content h4 {
+    color: #667eea;
+    margin-bottom: 0.8rem;
+}
+
+.expanded-content p {
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .header-lancamento {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-stats {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .filtros-lancamento {
+        flex-direction: column;
+    }
+    
+    .tabela-wrapper {
+        overflow-x: scroll;
+    }
+    
+    #tabelaLancamento {
+        min-width: 900px;
+    }
+}

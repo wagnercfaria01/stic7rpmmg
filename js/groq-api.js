@@ -1,0 +1,231 @@
+/**
+ * GROQ API CONFIGURATION
+ * Sistema de geração de relatórios com IA
+ */
+
+const GroqConfig = {
+    apiKey: null,
+    apiUrl: '/.netlify/functions/groq',
+    
+    // Melhor modelo disponível
+    model: 'llama-3.1-70b-versatile', // Rápido e excelente qualidade
+    // Alternativas:
+    // 'llama-3.1-405b-reasoning' - Melhor qualidade, mais lento
+    // 'mixtral-8x7b-32768' - Ótimo para contextos longos
+    
+    // Configurações
+    temperature: 0.7, // Criatividade moderada
+    maxTokens: 2000, // Resposta longa
+    
+    // Prompt base para relatórios
+    systemPrompt: `Você é um assistente especializado em criar relatórios técnicos profissionais para a Polícia Militar de Minas Gerais.
+
+Seu objetivo é analisar dados de ordens de serviço (OS) do setor STIC (Seção de Tecnologia da Informação) e gerar:
+
+1. RESUMO EXECUTIVO: Texto conciso e profissional descrevendo as atividades do período, destacando principais realizações e estatísticas relevantes.
+
+2. ANÁLISE DE DESEMPENHO: Avaliar tempo de atendimento, taxa de conclusão, tipos de serviço mais frequentes.
+
+3. DESTAQUES: Mencionar serviços mais complexos, desafios superados, melhorias implementadas.
+
+4. RECOMENDAÇÕES: Sugestões baseadas nos dados para otimização do trabalho.
+
+ESTILO:
+- Linguagem formal e técnica
+- Tom profissional e objetivo
+- Uso de dados estatísticos
+- Parágrafos bem estruturados
+- Vocabulário apropriado para relatório institucional
+
+FORMATO:
+- Textos com 2-4 parágrafos
+- Frases claras e diretas
+- Uso de conectivos adequados
+- Conclusões baseadas em dados`
+};
+
+/**
+ * Gerar resumo executivo com IA
+ */
+async function gerarResumoIA(dadosOS, periodo) {
+    try {
+        console.log('🤖 Gerando resumo com IA Groq...');
+        
+        // Preparar dados estatísticos
+        const stats = calcularEstatisticas(dadosOS);
+        
+        // Criar prompt com os dados
+        const prompt = criarPromptRelatorio(stats, periodo);
+        
+        // Chamar API Groq
+        const response = await fetch(GroqConfig.apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GroqConfig.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: GroqConfig.model,
+                messages: [
+                    { role: 'system', content: GroqConfig.systemPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: GroqConfig.temperature,
+                max_tokens: GroqConfig.maxTokens
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Erro na API: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const textoIA = data.choices[0].message.content;
+        
+        console.log('✅ Resumo gerado com sucesso!');
+        console.log(`📊 Tokens usados: ${data.usage.total_tokens}`);
+        
+        return {
+            resumo: textoIA,
+            stats: stats,
+            modelo: GroqConfig.model,
+            tokens: data.usage.total_tokens
+        };
+        
+    } catch (error) {
+        console.error('❌ Erro ao gerar resumo:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calcular estatísticas das OS
+ */
+function calcularEstatisticas(dadosOS) {
+    const total = dadosOS.length;
+    
+    // Status
+    const finalizadas = dadosOS.filter(os => os.status === 'Finalizada').length;
+    const emAndamento = dadosOS.filter(os => os.status === 'Em Manutenção').length;
+    const abertas = dadosOS.filter(os => os.status === 'Aberta').length;
+    
+    // Tipos de serviço
+    const tiposServico = {};
+    dadosOS.forEach(os => {
+        const tipo = os.tipo_servico || os.tipo_equipamento || 'Outros';
+        tiposServico[tipo] = (tiposServico[tipo] || 0) + 1;
+    });
+    
+    // Tempo médio de atendimento
+    let tempoTotal = 0;
+    let countComTempo = 0;
+    
+    dadosOS.forEach(os => {
+        if (os.data_abertura && os.data_finalizacao) {
+            const inicio = new Date(os.data_abertura);
+            const fim = new Date(os.data_finalizacao);
+            const diffDias = (fim - inicio) / (1000 * 60 * 60 * 24);
+            tempoTotal += diffDias;
+            countComTempo++;
+        }
+    });
+    
+    const tempoMedio = countComTempo > 0 ? tempoTotal / countComTempo : 0;
+    
+    // Equipamentos mais atendidos
+    const equipamentos = {};
+    dadosOS.forEach(os => {
+        const equip = os.tipo_equipamento || 'Não especificado';
+        equipamentos[equip] = (equipamentos[equip] || 0) + 1;
+    });
+    
+    const top5Equipamentos = Object.entries(equipamentos)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+    
+    return {
+        total,
+        finalizadas,
+        emAndamento,
+        abertas,
+        taxaConclusao: total > 0 ? ((finalizadas / total) * 100).toFixed(1) : 0,
+        tempoMedio: tempoMedio.toFixed(1),
+        tiposServico,
+        top5Equipamentos,
+        percentualFinalizadas: total > 0 ? ((finalizadas / total) * 100).toFixed(0) : 0
+    };
+}
+
+/**
+ * Criar prompt para a IA
+ */
+function criarPromptRelatorio(stats, periodo) {
+    return `Crie um RESUMO EXECUTIVO profissional para um relatório técnico da STIC (Seção de Tecnologia) da 7ª Região da Polícia Militar de Minas Gerais.
+
+PERÍODO ANALISADO: ${periodo.texto}
+
+DADOS ESTATÍSTICOS:
+- Total de Ordens de Serviço: ${stats.total}
+- Finalizadas: ${stats.finalizadas} (${stats.percentualFinalizadas}%)
+- Em andamento: ${stats.emAndamento}
+- Tempo médio de atendimento: ${stats.tempoMedio} dias
+
+PRINCIPAIS SERVIÇOS:
+${Object.entries(stats.tiposServico).map(([tipo, qtd]) => `- ${tipo}: ${qtd} OS`).join('\n')}
+
+TOP 5 EQUIPAMENTOS:
+${stats.top5Equipamentos.map(([equip, qtd], i) => `${i+1}. ${equip}: ${qtd} atendimentos`).join('\n')}
+
+Gere um texto de 3-4 parágrafos que:
+1. Apresente uma visão geral das atividades do período
+2. Destaque os principais indicadores de desempenho
+3. Mencione os tipos de serviço mais realizados
+4. Conclua com uma análise positiva e profissional
+
+Use linguagem formal, técnica e apropriada para um relatório institucional da PMMG.`;
+}
+
+/**
+ * Gerar análise de tendências
+ */
+async function gerarAnaliseTendencias(dadosComparativos) {
+    try {
+        const prompt = `Analise as tendências dos últimos períodos e forneça insights:
+        
+DADOS:
+${JSON.stringify(dadosComparativos, null, 2)}
+
+Forneça:
+1. Tendência geral (aumento/diminuição de demanda)
+2. Padrões identificados
+3. Recomendações para gestão`;
+        
+        const response = await fetch(GroqConfig.apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GroqConfig.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: GroqConfig.model,
+                messages: [
+                    { role: 'system', content: GroqConfig.systemPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 1000
+            })
+        });
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+        
+    } catch (error) {
+        console.error('❌ Erro na análise:', error);
+        return 'Análise não disponível no momento.';
+    }
+}
+
+console.log('✅ Groq API configurada!');
+console.log('🤖 Modelo:', GroqConfig.model);
+console.log('🎯 Pronto para gerar relatórios!');
