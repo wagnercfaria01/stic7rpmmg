@@ -1,5 +1,7 @@
 // Sistema de Edição de OS
 
+// Tornar osAtual global para ser acessada pelo código inline no HTML
+window.osAtual = null;
 let osAtual = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -36,6 +38,9 @@ async function carregarOS(id) {
         }
         
         osAtual = { id: doc.id, ...doc.data() };
+        window.osAtual = osAtual; // Tornar disponível globalmente
+        
+        console.log('✅ OS carregada:', osAtual.numero || osAtual.id);
         
         preencherFormulario(osAtual);
         

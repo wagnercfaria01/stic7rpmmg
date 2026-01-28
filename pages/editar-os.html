@@ -188,6 +188,13 @@
             const files = e.target.files;
             const fotosRestantes = MAX_FOTOS - fotosEditArray.length;
             
+            // Validar se OS foi carregada
+            if (!window.osAtual) {
+                mostrarErro('Aguarde o carregamento da OS antes de adicionar fotos');
+                console.error('❌ window.osAtual não está definida');
+                return;
+            }
+            
             if (fotosRestantes === 0) {
                 mostrarErro('Máximo de 4 fotos atingido');
                 return;
@@ -198,9 +205,13 @@
             
             try {
                 for (let i = 0; i < fotosParaUpload.length; i++) {
+                    // Nome do arquivo no Cloudinary
+                    const nomeArquivo = `OS_${window.osAtual.numero || window.osAtual.id}_foto${fotosEditArray.length + i + 1}`;
+                    console.log('📤 Upload foto:', nomeArquivo);
+                    
                     const result = await CloudinaryConfig.uploadFoto(
                         fotosParaUpload[i],
-                        `OS_${window.osAtual.numero || window.osAtual.id}_foto${fotosEditArray.length + 1}`
+                        nomeArquivo
                     );
                     
                     fotosEditArray.push({
