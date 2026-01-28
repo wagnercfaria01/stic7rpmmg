@@ -176,19 +176,45 @@ async function salvarAlteracoes() {
         
         // ========== SALVAR FOTOS ATUALIZADAS ==========
         if (typeof fotosEditArray !== 'undefined' && fotosEditArray.length >= 0) {
-            atualizacao.fotos = fotosEditArray;
+            // Limpar fotos: remover qualquer campo undefined
+            const fotosLimpas = fotosEditArray.map(foto => {
+                const fotoLimpa = {};
+                
+                // Adicionar apenas campos que NÃO são undefined
+                if (foto.url) fotoLimpa.url = foto.url;
+                if (foto.thumbnail) fotoLimpa.thumbnail = foto.thumbnail;
+                if (foto.public_id) fotoLimpa.public_id = foto.public_id;
+                if (foto.descricao !== undefined) fotoLimpa.descricao = foto.descricao || '';
+                if (foto.data_upload) fotoLimpa.data_upload = foto.data_upload;
+                
+                return fotoLimpa;
+            });
+            
+            atualizacao.fotos = fotosLimpas;
             
             // Adicionar ao histórico se fotos foram modificadas
-            if (JSON.stringify(fotosEditArray) !== JSON.stringify(osAtual.fotos || [])) {
+            if (JSON.stringify(fotosLimpas) !== JSON.stringify(osAtual.fotos || [])) {
                 const historicoFotos = {
                     data: new Date().toISOString(),
                     acao: 'Fotos atualizadas',
                     usuario: 'Wagner - STIC',
-                    detalhes: `Total de fotos: ${fotosEditArray.length}`
+                    detalhes: `Total de fotos: ${fotosLimpas.length}`
                 };
                 atualizacao.historico = firebase.firestore.FieldValue.arrayUnion(novoHistorico, historicoFotos);
             }
         }
+        
+        // ========== LIMPAR CAMPOS UNDEFINED ==========
+        // Firebase não aceita campos undefined - remover todos
+        Object.keys(atualizacao).forEach(key => {
+            if (atualizacao[key] === undefined) {
+                delete atualizacao[key];
+                console.warn(`⚠️ Campo removido (undefined): ${key}`);
+            }
+        });
+        
+        console.log('💾 Salvando OS:', osAtual.id);
+        console.log('📝 Dados para salvar:', atualizacao);
         
         // Atualizar no Firebase
         await ordensServicoRef.doc(osAtual.id).update(atualizacao);

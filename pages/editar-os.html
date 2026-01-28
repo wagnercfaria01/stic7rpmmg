@@ -214,13 +214,16 @@
                         nomeArquivo
                     );
                     
+                    // Garantir que TODOS os campos estejam definidos (Firebase não aceita undefined)
                     fotosEditArray.push({
-                        url: result.url,
-                        thumbnail: result.thumbnail,
-                        public_id: result.public_id,
+                        url: result.url || '',
+                        thumbnail: result.thumbnail || result.url || '',
+                        public_id: result.public_id || '',
                         descricao: '',
                         data_upload: new Date().toISOString()
                     });
+                    
+                    console.log('✅ Foto adicionada ao array:', fotosEditArray.length);
                 }
                 
                 renderizarFotos();
