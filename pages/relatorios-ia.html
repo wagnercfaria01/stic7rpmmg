@@ -1646,59 +1646,87 @@
                 doc.setDrawColor(0, 102, 204);
                 doc.setLineWidth(0.5);
                 doc.line(20, yPos, 190, yPos);
-                yPos += 10;
+                yPos += 12;
                 
                 // ===== PRIMEIRA LINHA DE GRÁFICOS =====
                 
                 // Gráfico 1: Status (Pizza) - ESQUERDA
                 if (graficosGerados.status) {
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text('Distribuição por Status', 60, yPos, { align: 'center' });
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(12, yPos, 86, 98);
                     
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Distribuição por Status', 55, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
                     const imgStatus = document.getElementById('chartStatus').toDataURL('image/png');
-                    doc.addImage(imgStatus, 'PNG', 15, yPos + 3, 90, 90);
+                    doc.addImage(imgStatus, 'PNG', 15, yPos + 10, 80, 80);
                 }
                 
                 // Gráfico 2: Serviços (Barras) - DIREITA
                 if (graficosGerados.servicos) {
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text('Top 5 Tipos de Serviço', 150, yPos, { align: 'center' });
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(102, yPos, 96, 98);
                     
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Top 5 Tipos de Serviço', 150, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
                     const imgServicos = document.getElementById('chartServicos').toDataURL('image/png');
-                    doc.addImage(imgServicos, 'PNG', 110, yPos + 3, 90, 60);
+                    doc.addImage(imgServicos, 'PNG', 105, yPos + 10, 90, 84);
                 }
                 
-                yPos += 100;
+                yPos += 105;
                 
                 // ===== SEGUNDA LINHA DE GRÁFICOS =====
                 
                 // Gráfico 3: Unidades (Barras Horizontais) - ESQUERDA
                 if (graficosGerados.unidades) {
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text('Atendimentos por Unidade', 60, yPos, { align: 'center' });
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(12, yPos, 86, 78);
                     
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Atendimentos por Unidade', 55, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
                     const imgUnidades = document.getElementById('chartUnidades').toDataURL('image/png');
-                    doc.addImage(imgUnidades, 'PNG', 15, yPos + 3, 90, 60);
+                    doc.addImage(imgUnidades, 'PNG', 15, yPos + 10, 80, 64);
                 }
                 
                 // Gráfico 4: Tendências (Linha) - DIREITA (se existir)
                 if (graficosGerados.tendencias) {
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text('Evolução do Volume de OS', 150, yPos, { align: 'center' });
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(102, yPos, 96, 78);
                     
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Evolução do Volume de OS', 150, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
                     const imgTendencias = document.getElementById('chartTendencias').toDataURL('image/png');
-                    doc.addImage(imgTendencias, 'PNG', 110, yPos + 3, 90, 50);
+                    doc.addImage(imgTendencias, 'PNG', 105, yPos + 10, 90, 64);
                 }
                 
-                yPos += 70;
+                yPos += 85;
             }
             
             // Assinatura (nova página se necessário)

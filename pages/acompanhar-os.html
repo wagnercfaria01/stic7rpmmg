@@ -353,20 +353,34 @@
         function renderizarOS(os) {
             const resultado = document.getElementById('resultado');
             
-            // Traduzir status
+            // Traduzir status - MAPEAMENTO COMPLETO
             const statusTexto = {
                 'aberta': 'Aberta',
+                'em_andamento': 'Em Andamento',
                 'em_manutencao': 'Em Manutenção',
                 'aguardando_peca': 'Aguardando Peça',
+                'aguardando_aprovacao': 'Aguardando Aprovação',
+                'pausada': 'Pausada',
+                'enviado_bh': 'Enviado para BH',
+                'aguardando_teste': 'Aguardando Teste',
+                'testada': 'Testada',
+                'pronta_retirada': 'Pronta para Retirada',
                 'finalizada': 'Finalizada',
                 'cancelada': 'Cancelada'
             }[os.status] || os.status;
             
-            // Ícones de status
+            // Ícones de status - MAPEAMENTO COMPLETO
             const statusIcon = {
                 'aberta': '📋',
+                'em_andamento': '🛠️',
                 'em_manutencao': '🔧',
-                'aguardando_peca': '📦',
+                'aguardando_peca': '⏳',
+                'aguardando_aprovacao': '⏳',
+                'pausada': '⏸️',
+                'enviado_bh': '🚚',
+                'aguardando_teste': '🧪',
+                'testada': '✓',
+                'pronta_retirada': '📦',
                 'finalizada': '✅',
                 'cancelada': '❌'
             }[os.status] || '📌';

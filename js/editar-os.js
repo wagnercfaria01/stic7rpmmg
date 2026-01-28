@@ -42,6 +42,15 @@ async function carregarOS(id) {
         document.getElementById('loadingOS').style.display = 'none';
         document.getElementById('formEditarOS').style.display = 'block';
         
+        // Garantir que seção de fotos seja visível
+        const secaoFotos = document.getElementById('secaoFotos');
+        if (secaoFotos) {
+            secaoFotos.style.display = 'block';
+            console.log('✅ Seção de fotos exibida');
+        } else {
+            console.error('❌ Seção de fotos não encontrada no DOM');
+        }
+        
         ocultarLoading();
         
     } catch (error) {
@@ -126,13 +135,21 @@ async function salvarAlteracoes() {
         if (statusAntigo !== statusNovo) {
             const statusTexto = {
                 'aberta': 'Aberta',
+                'em_andamento': 'Em Andamento',
                 'em_manutencao': 'Em Manutenção',
                 'aguardando_peca': 'Aguardando Peça',
+                'aguardando_aprovacao': 'Aguardando Aprovação',
+                'pausada': 'Pausada',
                 'enviado_bh': 'Enviado para BH',
                 'aguardando_teste': 'Aguardando Teste',
-                'finalizada': 'Finalizada'
+                'testada': 'Testada',
+                'pronta_retirada': 'Pronta para Retirada',
+                'finalizada': 'Finalizada',
+                'cancelada': 'Cancelada'
             };
-            acaoHistorico = `Status alterado: ${statusTexto[statusAntigo]} → ${statusTexto[statusNovo]}`;
+            const textoAntigo = statusTexto[statusAntigo] || statusAntigo;
+            const textoNovo = statusTexto[statusNovo] || statusNovo;
+            acaoHistorico = `Status alterado: ${textoAntigo} → ${textoNovo}`;
         } else if (comentario) {
             acaoHistorico = 'Comentário adicionado';
         } else {

@@ -119,6 +119,36 @@
                 </div>
             </section>
 
+            <!-- ========== NOVA SEÇÃO: GERENCIAR FOTOS ========== -->
+            <section class="form-section" id="secaoFotos" style="display:block;">
+                <h2>📸 Gerenciar Fotos</h2>
+                
+                <div class="alert alert-info" style="margin-bottom: 1rem;">
+                    <strong>💡 Dica:</strong> Adicione até 4 fotos do equipamento (antes, durante e depois do reparo)
+                </div>
+                
+                <div class="form-group">
+                    <input type="file" 
+                           id="inputNovasFotos" 
+                           accept="image/jpeg,image/jpg,image/png,image/webp" 
+                           multiple 
+                           style="display:none">
+                    
+                    <button type="button" 
+                            id="btnAdicionarNovasFotos"
+                            onclick="document.getElementById('inputNovasFotos').click()"
+                            class="btn-secondary"
+                            style="background:#28a745;color:white;padding:0.75rem 1.5rem;border:none;border-radius:6px;cursor:pointer;font-size:1rem;font-weight:600;">
+                        📷 Adicionar Fotos (<span id="contadorFotos">0/4</span>)
+                    </button>
+                </div>
+                
+                <!-- Preview das Fotos -->
+                <div id="previewFotosEdit" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+                    <p style="color:#666;text-align:center;padding:2rem;grid-column:1/-1;">Nenhuma foto adicionada ainda. Clique no botão acima para adicionar.</p>
+                </div>
+            </section>
+
             <div class="form-actions">
                 <button type="button" onclick="window.location='../index.html'" class="btn-secondary">
                     ❌ Cancelar
@@ -136,9 +166,131 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     
     <script src="../js/firebase-config.js"></script>
+    <script src="../js/cloudinary-config.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/editar-os.js"></script>
+    
+    <script>
+        // ========== GERENCIAMENTO DE FOTOS NA EDIÇÃO ==========
+        let fotosEditArray = [];
+        const MAX_FOTOS = 4;
+        
+        // Carregar fotos existentes da OS
+        async function carregarFotosExistentes(osData) {
+            if (osData.fotos && Array.isArray(osData.fotos)) {
+                fotosEditArray = osData.fotos;
+                renderizarFotos();
+            }
+        }
+        
+        // Upload de novas fotos
+        document.getElementById('inputNovasFotos').addEventListener('change', async function(e) {
+            const files = e.target.files;
+            const fotosRestantes = MAX_FOTOS - fotosEditArray.length;
+            
+            if (fotosRestantes === 0) {
+                mostrarErro('Máximo de 4 fotos atingido');
+                return;
+            }
+            
+            const fotosParaUpload = Array.from(files).slice(0, fotosRestantes);
+            mostrarLoading(`Fazendo upload de ${fotosParaUpload.length} foto(s)...`);
+            
+            try {
+                for (let i = 0; i < fotosParaUpload.length; i++) {
+                    const result = await CloudinaryConfig.uploadFoto(
+                        fotosParaUpload[i],
+                        `OS_${window.osAtual.numero || window.osAtual.id}_foto${fotosEditArray.length + 1}`
+                    );
+                    
+                    fotosEditArray.push({
+                        url: result.url,
+                        thumbnail: result.thumbnail,
+                        public_id: result.public_id,
+                        descricao: '',
+                        data_upload: new Date().toISOString()
+                    });
+                }
+                
+                renderizarFotos();
+                ocultarLoading();
+                mostrarSucesso(`${fotosParaUpload.length} foto(s) adicionada(s)!`);
+                
+            } catch (error) {
+                ocultarLoading();
+                console.error('Erro ao fazer upload:', error);
+                mostrarErro('Erro ao fazer upload das fotos: ' + error.message);
+            }
+            
+            // Limpar input
+            e.target.value = '';
+        });
+        
+        // Renderizar fotos
+        function renderizarFotos() {
+            const container = document.getElementById('previewFotosEdit');
+            const contador = document.getElementById('contadorFotos');
+            
+            contador.textContent = `${fotosEditArray.length}/${MAX_FOTOS}`;
+            
+            if (fotosEditArray.length === 0) {
+                container.innerHTML = '<p style="color:#666;text-align:center;padding:2rem;">Nenhuma foto adicionada ainda</p>';
+                return;
+            }
+            
+            container.innerHTML = fotosEditArray.map((foto, index) => `
+                <div style="position:relative;border:2px solid #ddd;border-radius:8px;overflow:hidden;background:#fff;">
+                    <img src="${foto.thumbnail || foto.url}" 
+                         style="width:100%;height:150px;object-fit:cover;cursor:pointer;"
+                         onclick="visualizarFotoGrande('${foto.url}')"
+                         alt="Foto ${index + 1}">
+                    <div style="padding:0.5rem;">
+                        <input type="text" 
+                               placeholder="Descrição da foto..."
+                               value="${foto.descricao || ''}"
+                               onchange="fotosEditArray[${index}].descricao = this.value"
+                               style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;font-size:0.875rem;">
+                        <button type="button" 
+                                onclick="removerFoto(${index})"
+                                style="width:100%;margin-top:0.5rem;padding:0.5rem;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;">
+                            🗑️ Remover
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Remover foto
+        async function removerFoto(index) {
+            if (!confirm('Deseja realmente remover esta foto?')) return;
+            
+            const foto = fotosEditArray[index];
+            
+            // Tentar deletar do Cloudinary
+            try {
+                if (foto.public_id) {
+                    await CloudinaryConfig.deletarFoto(foto.public_id);
+                }
+            } catch (error) {
+                console.warn('Erro ao deletar do Cloudinary:', error);
+            }
+            
+            fotosEditArray.splice(index, 1);
+            renderizarFotos();
+            mostrarSucesso('Foto removida!');
+        }
+        
+        // Visualizar foto grande
+        function visualizarFotoGrande(url) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+            modal.innerHTML = `<img src="${url}" style="max-width:90%;max-height:90%;border-radius:8px;">`;
+            modal.onclick = () => modal.remove();
+            document.body.appendChild(modal);
+        }
 
+    </script>
+    
     <script>
         // Mostrar seção solução quando finalizar
         document.getElementById('statusEdit').addEventListener('change', function() {

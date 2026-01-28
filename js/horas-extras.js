@@ -12,6 +12,178 @@ let horasLancadas = [];
 let graficos = {};
 
 // ====================================
+// LÓGICA DE PRAZO - SEXTA-FEIRA
+// ====================================
+
+/**
+ * Calcula o dia limite para lançamento (próxima sexta após 7 dias)
+ * @param {Date|string} dataRealizacao - Data em que a hora foi realizada
+ * @returns {Date} Data limite (sexta-feira às 23:59:59)
+ */
+function calcularDiaLimiteHoras(dataRealizacao) {
+    const dataHora = new Date(dataRealizacao);
+    
+    // 1. Adicionar 7 dias
+    dataHora.setDate(dataHora.getDate() + 7);
+    
+    // 2. Encontrar próxima sexta-feira
+    const diaSemana = dataHora.getDay(); // 0=domingo, 5=sexta, 6=sábado
+    
+    let diasAteProximaSexta;
+    if (diaSemana <= 5) {
+        // Segunda a sexta: calcular dias até sexta
+        diasAteProximaSexta = 5 - diaSemana;
+    } else {
+        // Sábado (6) ou domingo (0): próxima sexta é em 6 ou 5 dias
+        diasAteProximaSexta = diaSemana === 6 ? 6 : 5;
+    }
+    
+    dataHora.setDate(dataHora.getDate() + diasAteProximaSexta);
+    dataHora.setHours(23, 59, 59, 999);
+    
+    return dataHora;
+}
+
+/**
+ * Verifica se o lançamento está atrasado
+ * @param {Date|string} dataRealizacao - Data em que a hora foi realizada
+ * @param {Date|string} dataLancamento - Data em que está sendo lançado (default: hoje)
+ * @returns {boolean} true se está atrasado
+ */
+function estaAtrasado(dataRealizacao, dataLancamento = new Date()) {
+    const limite = calcularDiaLimiteHoras(dataRealizacao);
+    const lancamento = new Date(dataLancamento);
+    
+    return lancamento > limite;
+}
+
+/**
+ * Retorna mensagem amigável sobre o prazo
+ * @param {Date|string} dataRealizacao - Data em que a hora foi realizada
+ * @returns {string} Mensagem sobre o status do prazo
+ */
+function getMensagemPrazo(dataRealizacao) {
+    const hoje = new Date();
+    const limite = calcularDiaLimiteHoras(dataRealizacao);
+    const diasRestantes = Math.ceil((limite - hoje) / (1000 * 60 * 60 * 24));
+    
+    if (diasRestantes > 7) {
+        const sextaFormatada = limite.toLocaleDateString('pt-BR');
+        return `✅ Dentro do prazo! Pode lançar até ${sextaFormatada} (faltam ${diasRestantes} dias)`;
+    } else if (diasRestantes > 0) {
+        const sextaFormatada = limite.toLocaleDateString('pt-BR');
+        return `⚠️ Prazo próximo! Deve lançar até ${sextaFormatada} (faltam ${diasRestantes} dia${diasRestantes > 1 ? 's' : ''})`;
+    } else if (diasRestantes === 0) {
+        return '🚨 ÚLTIMO DIA! Lançar hoje até 23:59';
+    } else {
+        const sextaFormatada = limite.toLocaleDateString('pt-BR');
+        return `❌ ATRASADO! Prazo era ${sextaFormatada}`;
+    }
+}
+
+/**
+ * Retorna classe CSS baseada no status do prazo
+ * @param {Date|string} dataRealizacao - Data em que a hora foi realizada
+ * @returns {string} Classe CSS ('prazo-ok', 'prazo-proximo', 'prazo-atrasado')
+ */
+function getClassePrazo(dataRealizacao) {
+    const hoje = new Date();
+    const limite = calcularDiaLimiteHoras(dataRealizacao);
+    const diasRestantes = Math.ceil((limite - hoje) / (1000 * 60 * 60 * 24));
+    
+    if (diasRestantes > 3) return 'prazo-ok';
+    if (diasRestantes > 0) return 'prazo-proximo';
+    return 'prazo-atrasado';
+}
+
+// ====================================
+// LÓGICA DE LANÇAMENTO CAD 2
+// ====================================
+
+/**
+ * Verifica se hoje é sexta-feira
+ * @returns {boolean} true se hoje é sexta
+ */
+function hojeSexta() {
+    return new Date().getDay() === 5; // 5 = sexta-feira
+}
+
+/**
+ * Verifica se passaram 7 dias desde a data da hora
+ * @param {Date|string} dataHora - Data em que a hora foi realizada
+ * @returns {boolean} true se passaram 7 dias ou mais
+ */
+function passaram7Dias(dataHora) {
+    const data = new Date(dataHora);
+    const hoje = new Date();
+    const diffDias = Math.floor((hoje - data) / (1000 * 60 * 60 * 24));
+    return diffDias >= 7;
+}
+
+/**
+ * Verifica se a hora pode ser lançada no CAD 2 HOJE
+ * Critérios: Passou 7 dias E hoje é sexta-feira
+ * @param {Date|string} dataHora - Data em que a hora foi realizada
+ * @returns {boolean} true se pode lançar hoje
+ */
+function podeLancarHoje(dataHora) {
+    return hojeSexta() && passaram7Dias(dataHora);
+}
+
+/**
+ * Retorna a próxima sexta-feira disponível para lançamento
+ * @param {Date|string} dataHora - Data em que a hora foi realizada
+ * @returns {Date} Próxima sexta válida (após 7 dias)
+ */
+function proximaSextaLancamento(dataHora) {
+    const data = new Date(dataHora);
+    // Adicionar 7 dias
+    data.setDate(data.getDate() + 7);
+    
+    // Encontrar próxima sexta
+    const diaSemana = data.getDay();
+    let diasAteProximaSexta;
+    
+    if (diaSemana <= 5) {
+        diasAteProximaSexta = 5 - diaSemana;
+    } else {
+        diasAteProximaSexta = diaSemana === 6 ? 6 : 5;
+    }
+    
+    data.setDate(data.getDate() + diasAteProximaSexta);
+    return data;
+}
+
+/**
+ * Retorna mensagem sobre quando pode lançar
+ * @param {Date|string} dataHora - Data em que a hora foi realizada
+ * @returns {string} Mensagem informativa
+ */
+function getMensagemLancamento(dataHora) {
+    const passou7 = passaram7Dias(dataHora);
+    const sexta = hojeSexta();
+    
+    if (!passou7) {
+        const data = new Date(dataHora);
+        data.setDate(data.getDate() + 7);
+        return `⏳ Ainda não podem lançar. 7 dias completam em ${data.toLocaleDateString('pt-BR')}`;
+    }
+    
+    if (passou7 && !sexta) {
+        const proximaSexta = proximaSextaLancamento(dataHora);
+        const hoje = new Date();
+        const diasRestantes = Math.ceil((proximaSexta - hoje) / (1000 * 60 * 60 * 24));
+        return `📅 Lançar na próxima sexta: ${proximaSexta.toLocaleDateString('pt-BR')} (em ${diasRestantes} dia${diasRestantes > 1 ? 's' : ''})`;
+    }
+    
+    if (passou7 && sexta) {
+        return `✅ PODE LANÇAR HOJE! Hoje é sexta e já passaram 7 dias`;
+    }
+    
+    return 'Aguardando lançamento';
+}
+
+// ====================================
 // INICIALIZAÇÃO
 // ====================================
 
@@ -367,6 +539,7 @@ function renderizarHistorico(horas) {
                         ${h.data_lancamento_cad2 ? `<br><small style="color: #666;">📅 ${formatarData(h.data_lancamento_cad2)}</small>` : ''}
                     ` : `
                         <span class="status-badge status-pendente">⏳ Pendente</span>
+                        <br><small style="color: #666;font-size:0.75rem;">${getMensagemLancamento(h.data_hora)}</small>
                     `}
                 </div>
             </td>
@@ -377,11 +550,20 @@ function renderizarHistorico(horas) {
             </td>
             <td>
                 <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
-                    ${h.status === 'pendente' ? `
+                    ${h.status === 'pendente' && podeLancarHoje(h.data_hora) ? `
                         <button onclick="abrirModalLancamento('${h.id}')" 
                             class="btn-action btn-success" 
-                            title="Lançar no CAD2">
+                            title="✅ Pode lançar HOJE!">
                             ✅
+                        </button>
+                    ` : ''}
+                    ${h.status === 'pendente' && !podeLancarHoje(h.data_hora) ? `
+                        <button 
+                            class="btn-action" 
+                            style="background:#6c757d;cursor:not-allowed;" 
+                            disabled
+                            title="${getMensagemLancamento(h.data_hora)}">
+                            🔒
                         </button>
                     ` : ''}
                     <button onclick="editarHora('${h.id}')" 
@@ -915,6 +1097,11 @@ async function lancarHoras(e) {
             quantidade_horas: quantidade,
             motivo,
             tags, // Adiciona tags
+            
+            // ========== NOVO: CAMPOS DE PRAZO ==========
+            data_limite: calcularDiaLimiteHoras(data_hora).toISOString(),
+            atrasado: estaAtrasado(data_hora, new Date()),
+            dias_para_lancamento: Math.ceil((calcularDiaLimiteHoras(data_hora) - new Date()) / (1000 * 60 * 60 * 24)),
             
             data_prevista_lancamento: document.getElementById('dataLancamento').value,
             
@@ -1560,12 +1747,70 @@ async function carregarListaSemanal() {
                     </div>
                     
                     <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 5px; margin-top: 0.5rem;">
-                        <strong>📝 Motivo:</strong> ${h.motivo}
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <strong>📝 Motivo:</strong>
+                                <div id="motivo-${h.id}" style="margin-top: 0.5rem; padding: 0.5rem; background: white; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+                                    ${h.motivo}
+                                </div>
+                            </div>
+                            <button 
+                                onclick="copiarMotivo('${h.id}', '${h.motivo.replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                style="
+                                    padding: 0.5rem 1rem;
+                                    background: #007bff;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-weight: 600;
+                                    white-space: nowrap;
+                                    transition: all 0.2s;
+                                    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+                                "
+                                onmouseover="this.style.background='#0056b3'; this.style.transform='scale(1.05)';"
+                                onmouseout="this.style.background='#007bff'; this.style.transform='scale(1)';"
+                                title="Copiar motivo para colar no CAD 2">
+                                📋 Copiar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// ========== COPIAR MOTIVO PARA CAD 2 ==========
+async function copiarMotivo(horaId, motivo) {
+    try {
+        // Copiar para clipboard
+        await navigator.clipboard.writeText(motivo);
+        
+        // Feedback visual - mudar botão temporariamente
+        const todosCards = document.querySelectorAll('[data-id]');
+        todosCards.forEach(card => {
+            if (card.getAttribute('data-id') === horaId) {
+                const botao = card.querySelector('button[onclick*="copiarMotivo"]');
+                if (botao) {
+                    const textoOriginal = botao.innerHTML;
+                    botao.innerHTML = '✅ Copiado!';
+                    botao.style.background = '#28a745';
+                    
+                    setTimeout(() => {
+                        botao.innerHTML = textoOriginal;
+                        botao.style.background = '#007bff';
+                    }, 2000);
+                }
+            }
+        });
+        
+        console.log('✅ Motivo copiado:', motivo);
+        
+    } catch (error) {
+        console.error('❌ Erro ao copiar:', error);
+        alert('Erro ao copiar motivo. Tente novamente.');
+    }
 }
 
 // Atualizar contador de selecionados
