@@ -1,6 +1,6 @@
 export async function handler(event) {
   try {
-    const body = JSON.parse(event.body || "{}");
+    const payload = JSON.parse(event.body || "{}");
 
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -10,7 +10,12 @@ export async function handler(event) {
           "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          model: "llama-3.1-70b-versatile",
+          messages: payload.messages,
+          temperature: 0.7,
+          max_tokens: 800
+        })
       }
     );
 
