@@ -76,14 +76,23 @@ async function gerarResumoIA(dadosOS, periodo) {
         });
         
         if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
+            const errorData = await response.json();
+            console.error('❌ Erro da API:', errorData);
+            throw new Error(errorData.error || `Erro na API: ${response.status}`);
         }
         
         const data = await response.json();
+        
+        // ✅ VALIDAR se a resposta tem o formato esperado
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('❌ Resposta inválida da IA:', data);
+            throw new Error('Resposta da IA não está no formato esperado. Verifique os logs da Netlify Function.');
+        }
+        
         const textoIA = data.choices[0].message.content;
         
         console.log('✅ Resumo gerado com sucesso!');
-        console.log(`📊 Tokens usados: ${data.usage.total_tokens}`);
+        console.log(`📊 Tokens usados: ${data.usage?.total_tokens || 'N/A'}`);
         
         return {
             resumo: textoIA,
