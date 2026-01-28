@@ -55,7 +55,7 @@ async function gerarResumoIA(dadosOS, periodo) {
         const stats = calcularEstatisticas(dadosOS);
         
         // Criar prompt com os dados
-        const prompt = criarPromptRelatorio(stats, periodo);
+        const prompt = criarPromptRelatorio(stats, periodo, dadosOS);
         
         // Chamar API Groq
         const response = await fetch(GroqConfig.apiUrl, {
@@ -113,10 +113,24 @@ async function gerarResumoIA(dadosOS, periodo) {
 function calcularEstatisticas(dadosOS) {
     const total = dadosOS.length;
     
-    // Status
-    const finalizadas = dadosOS.filter(os => os.status === 'Finalizada').length;
-    const emAndamento = dadosOS.filter(os => os.status === 'Em Manutenção').length;
-    const abertas = dadosOS.filter(os => os.status === 'Aberta').length;
+    // Status (case-insensitive e variações)
+    const finalizadas = dadosOS.filter(os => {
+        const status = (os.status || '').toLowerCase().trim();
+        return status === 'finalizada' || status === 'finalizado' || 
+               status === 'concluída' || status === 'concluído' ||
+               status === 'fechada' || status === 'fechado';
+    }).length;
+    
+    const emAndamento = dadosOS.filter(os => {
+        const status = (os.status || '').toLowerCase().trim();
+        return status === 'em manutenção' || status === 'em andamento' || 
+               status === 'em execução' || status === 'aguardando peça';
+    }).length;
+    
+    const abertas = dadosOS.filter(os => {
+        const status = (os.status || '').toLowerCase().trim();
+        return status === 'aberta' || status === 'novo' || status === 'pendente';
+    }).length;
     
     // Tipos de serviço
     const tiposServico = {};
@@ -168,30 +182,37 @@ function calcularEstatisticas(dadosOS) {
 /**
  * Criar prompt para a IA
  */
-function criarPromptRelatorio(stats, periodo) {
-    return `Crie um RESUMO EXECUTIVO profissional para um relatório técnico da STIC (Seção de Tecnologia) da 7ª Região da Polícia Militar de Minas Gerais.
+function criarPromptRelatorio(stats, periodo, dadosOS) {
+    // Extrair descrições das OS para contexto
+    const resumoOS = dadosOS.slice(0, 10).map(os => {
+        const desc = (os.defeito || os.descricao_servico || os.observacoes || '').substring(0, 150);
+        const tipo = os.tipo_servico || os.tipo_equipamento || 'Serviço';
+        const status = os.status || 'Em andamento';
+        return `• ${tipo}: ${desc} [${status}]`;
+    }).join('\n');
+    
+    return `Crie um RESUMO EXECUTIVO técnico e CONCISO (máximo 200 palavras) para um relatório da STIC - 7ª RPM/PMMG.
 
-PERÍODO ANALISADO: ${periodo.texto}
+PERÍODO: ${periodo.texto}
 
-DADOS ESTATÍSTICOS:
-- Total de Ordens de Serviço: ${stats.total}
-- Finalizadas: ${stats.finalizadas} (${stats.percentualFinalizadas}%)
-- Em andamento: ${stats.emAndamento}
-- Tempo médio de atendimento: ${stats.tempoMedio} dias
+INDICADORES:
+- Total: ${stats.total} OS | Finalizadas: ${stats.finalizadas} (${stats.percentualFinalizadas}%) | Em andamento: ${stats.emAndamento}
+- Tempo médio: ${stats.tempoMedio} dias | Taxa de conclusão: ${stats.taxaConclusao}%
 
 PRINCIPAIS SERVIÇOS:
 ${Object.entries(stats.tiposServico).map(([tipo, qtd]) => `- ${tipo}: ${qtd} OS`).join('\n')}
 
-TOP 5 EQUIPAMENTOS:
-${stats.top5Equipamentos.map(([equip, qtd], i) => `${i+1}. ${equip}: ${qtd} atendimentos`).join('\n')}
+EXEMPLOS DE ATENDIMENTOS:
+${resumoOS}
 
-Gere um texto de 3-4 parágrafos que:
-1. Apresente uma visão geral das atividades do período
-2. Destaque os principais indicadores de desempenho
-3. Mencione os tipos de serviço mais realizados
-4. Conclua com uma análise positiva e profissional
+INSTRUÇÕES:
+1. Seja OBJETIVO e TÉCNICO - use termos como "execução", "implementação", "configuração", "manutenção"
+2. Foque em AÇÕES CONCRETAS - o que foi feito, não genéricos
+3. Use PARÁGRAFOS CURTOS (2-3 parágrafos no máximo)
+4. Mostre PROATIVIDADE e RESULTADOS
+5. Linguagem FORMAL mas DIRETA - sem rodeios
 
-Use linguagem formal, técnica e apropriada para um relatório institucional da PMMG.`;
+Formato: Parágrafo 1 (visão geral + principais ações), Parágrafo 2 (resultados numéricos), Parágrafo 3 (conclusão técnica).`;
 }
 
 /**

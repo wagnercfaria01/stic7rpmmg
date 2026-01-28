@@ -620,103 +620,266 @@
      * Baixar relatório em PDF
      */
     async function baixarPDF() {
-        mostrarLoading('Gerando PDF...');
+        mostrarLoading('Gerando PDF com fotos...');
         
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            let yPos = 20;
             
             // Configurar fonte
             doc.setFont('helvetica');
             
+            // ========== PÁGINA 1: CABEÇALHO + RESUMO ==========
+            
             // Cabeçalho
             doc.setFontSize(16);
-            doc.setTextColor(0, 51, 102); // Azul PMMG
-            doc.text('POLÍCIA MILITAR DE MINAS GERAIS', 105, 20, { align: 'center' });
+            doc.setTextColor(0, 51, 102);
+            doc.text('POLÍCIA MILITAR DE MINAS GERAIS', 105, yPos, { align: 'center' });
+            yPos += 8;
             
             doc.setFontSize(14);
-            doc.text('7ª REGIÃO - STIC', 105, 28, { align: 'center' });
+            doc.text('7ª REGIÃO - STIC', 105, yPos, { align: 'center' });
+            yPos += 8;
             
             doc.setFontSize(12);
-            doc.text('RELATÓRIO DE ATIVIDADES', 105, 36, { align: 'center' });
+            doc.text('RELATÓRIO TÉCNICO DE ATIVIDADES', 105, yPos, { align: 'center' });
+            yPos += 6;
             
             // Linha decorativa
             doc.setDrawColor(0, 51, 102);
             doc.setLineWidth(0.5);
-            doc.line(20, 40, 190, 40);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 8;
             
             // Período
             doc.setFontSize(10);
             doc.setTextColor(100);
-            doc.text(`Período: ${relatorioAtual.dias} dias`, 105, 48, { align: 'center' });
-            
-            // Resumo Executivo
-            doc.setFontSize(12);
-            doc.setTextColor(0, 51, 102);
-            doc.text('RESUMO EXECUTIVO', 20, 60);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0);
-            const resumoLinhas = doc.splitTextToSize(relatorioAtual.resultado.resumo, 170);
-            doc.text(resumoLinhas, 20, 68);
-            
-            let yPos = 68 + (resumoLinhas.length * 5) + 10;
-            
-            // Indicadores
-            doc.setFontSize(12);
-            doc.setTextColor(0, 51, 102);
-            doc.text('INDICADORES-CHAVE', 20, yPos);
+            doc.text(`Período: ${relatorioAtual.dias} dias | Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 105, yPos, { align: 'center' });
             yPos += 10;
             
-            const stats = relatorioAtual.resultado.stats;
-            doc.setFontSize(10);
+            // Resumo Executivo
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.setFont('helvetica', 'bold');
+            doc.text('RESUMO EXECUTIVO', 20, yPos);
+            yPos += 6;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
             doc.setTextColor(0);
-            doc.text(`Total de OS: ${stats.total}`, 20, yPos);
-            doc.text(`Finalizadas: ${stats.finalizadas} (${stats.taxaConclusao}%)`, 20, yPos + 6);
-            doc.text(`Tempo médio: ${stats.tempoMedio} dias`, 20, yPos + 12);
+            const resumoLinhas = doc.splitTextToSize(relatorioAtual.resultado.resumo, 170);
+            doc.text(resumoLinhas, 20, yPos);
+            yPos += (resumoLinhas.length * 4) + 8;
             
-            yPos += 25;
+            // Indicadores em caixas
+            const stats = relatorioAtual.resultado.stats;
             
-            // Top 5 Equipamentos
-            if (yPos > 250) {
+            if (yPos > 200) {
                 doc.addPage();
                 yPos = 20;
             }
             
-            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
             doc.setTextColor(0, 51, 102);
-            doc.text('TOP 5 EQUIPAMENTOS', 20, yPos);
-            yPos += 8;
+            doc.text('INDICADORES-CHAVE', 20, yPos);
+            yPos += 6;
             
-            doc.setFontSize(10);
-            doc.setTextColor(0);
-            stats.top5Equipamentos.forEach(([equip, qtd], index) => {
-                doc.text(`${index + 1}. ${equip}: ${qtd} atendimentos`, 25, yPos);
-                yPos += 6;
+            // Caixas de indicadores (2x2)
+            doc.setFont('helvetica', 'normal');
+            const caixaWidth = 42;
+            const caixaHeight = 18;
+            const gap = 4;
+            
+            const indicadores = [
+                { label: 'Total de OS', valor: stats.total, cor: [52, 152, 219] },
+                { label: 'Finalizadas', valor: `${stats.finalizadas} (${stats.taxaConclusao}%)`, cor: [46, 204, 113] },
+                { label: 'Em Andamento', valor: stats.emAndamento, cor: [241, 196, 15] },
+                { label: 'Tempo Médio', valor: `${stats.tempoMedio} dias`, cor: [155, 89, 182] }
+            ];
+            
+            indicadores.forEach((ind, i) => {
+                const x = 20 + (i % 2) * (caixaWidth + gap + 43);
+                const y = yPos + Math.floor(i / 2) * (caixaHeight + gap);
+                
+                // Fundo colorido
+                doc.setFillColor(ind.cor[0], ind.cor[1], ind.cor[2]);
+                doc.rect(x, y, caixaWidth, caixaHeight, 'F');
+                
+                // Texto branco
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.text(ind.label, x + 2, y + 5);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(String(ind.valor), x + 2, y + 13);
+                doc.setFont('helvetica', 'normal');
             });
             
-            // Assinatura
+            yPos += 2 * (caixaHeight + gap) + 8;
+            
+            // ========== PÁGINA 2: ORDENS DE SERVIÇO DETALHADAS ==========
+            
             doc.addPage();
+            yPos = 20;
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.text('ORDENS DE SERVIÇO DO PERÍODO', 20, yPos);
+            yPos += 8;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            
+            // Listar cada OS
+            const osParaPDF = relatorioAtual.osArray.slice(0, 20); // Limite de 20 OS
+            
+            for (let i = 0; i < osParaPDF.length; i++) {
+                const os = osParaPDF[i];
+                
+                // Verificar espaço
+                if (yPos > 260) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                // Número e status
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 51, 102);
+                doc.text(`OS #${os.numero || os.id}`, 20, yPos);
+                
+                // Status com cor
+                const statusCor = (os.status || '').toLowerCase().includes('final') ? [46, 204, 113] : 
+                                 (os.status || '').toLowerCase().includes('andamento') ? [241, 196, 15] : [52, 152, 219];
+                doc.setTextColor(statusCor[0], statusCor[1], statusCor[2]);
+                doc.text(`[${os.status || 'Aberta'}]`, 50, yPos);
+                yPos += 5;
+                
+                // Informações
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60);
+                doc.setFontSize(8);
+                
+                const info = [
+                    `Solicitante: ${os.solicitante?.nome || os.nome_solicitante || 'N/A'}`,
+                    `Serviço: ${os.tipo_servico || os.tipo_equipamento || 'N/A'}`,
+                    `Equipamento: ${os.tipo_equipamento || 'N/A'}`,
+                ];
+                
+                info.forEach(linha => {
+                    doc.text(linha, 22, yPos);
+                    yPos += 4;
+                });
+                
+                // Descrição/Defeito
+                const descricao = os.defeito || os.descricao_servico || os.observacoes || 'Sem descrição';
+                doc.setTextColor(0);
+                doc.setFontSize(8);
+                const descLinhas = doc.splitTextToSize(`Descrição: ${descricao}`, 168);
+                doc.text(descLinhas, 22, yPos);
+                yPos += descLinhas.length * 4 + 2;
+                
+                // Fotos (se houver)
+                if (os.fotos && os.fotos.length > 0) {
+                    try {
+                        doc.setTextColor(100);
+                        doc.text(`📷 ${os.fotos.length} foto(s) anexada(s)`, 22, yPos);
+                        yPos += 4;
+                        
+                        // Adicionar até 2 fotos inline
+                        for (let j = 0; j < Math.min(2, os.fotos.length); j++) {
+                            const foto = os.fotos[j];
+                            if (foto.thumbnail || foto.url) {
+                                try {
+                                    // Verificar espaço para foto
+                                    if (yPos > 230) {
+                                        doc.addPage();
+                                        yPos = 20;
+                                    }
+                                    
+                                    doc.addImage(foto.thumbnail || foto.url, 'JPEG', 22, yPos, 40, 30);
+                                    if (foto.legenda) {
+                                        doc.setFontSize(7);
+                                        doc.text(foto.legenda.substring(0, 50), 22, yPos + 32);
+                                    }
+                                    yPos += 35;
+                                } catch (imgErr) {
+                                    console.warn('Erro ao adicionar foto:', imgErr);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Erro ao processar fotos:', err);
+                    }
+                }
+                
+                // Linha separadora
+                doc.setDrawColor(200);
+                doc.setLineWidth(0.1);
+                doc.line(20, yPos, 190, yPos);
+                yPos += 6;
+            }
+            
+            // Top 5 Equipamentos
+            if (yPos > 220) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.text('TOP 5 EQUIPAMENTOS MAIS ATENDIDOS', 20, yPos);
+            yPos += 7;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            stats.top5Equipamentos.forEach(([equip, qtd], index) => {
+                doc.text(`${index + 1}. ${equip}: ${qtd} atendimento(s)`, 25, yPos);
+                yPos += 5;
+            });
+            
+            // Assinatura (no final da última página, sem página nova)
+            yPos += 15;
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 250;
+            } else {
+                yPos = 250;
+            }
+            
             const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
             const posto = document.getElementById('postoAssinatura').value.trim();
             
-            doc.text('_'.repeat(50), 20, 250);
-            doc.text(nome, 20, 256);
-            if (posto) doc.text(posto, 20, 262);
-            doc.text('STIC - 7ª RPM/PMMG', 20, posto ? 268 : 262);
-            doc.text(`Divinópolis/MG, ${new Date().toLocaleDateString('pt-BR')}`, 20, posto ? 274 : 268);
+            doc.setTextColor(0);
+            doc.setFontSize(9);
+            doc.text('_'.repeat(60), 20, yPos);
+            yPos += 5;
+            doc.text(nome, 20, yPos);
+            if (posto) {
+                yPos += 4;
+                doc.text(posto, 20, yPos);
+            }
+            yPos += 4;
+            doc.text('STIC - 7ª RPM/PMMG', 20, yPos);
+            yPos += 4;
+            doc.text(`Divinópolis/MG, ${new Date().toLocaleDateString('pt-BR')}`, 20, yPos);
             
             // Salvar
             const filename = `relatorio-stic-${relatorioAtual.dias}dias-${Date.now()}.pdf`;
             doc.save(filename);
             
             ocultarLoading();
-            mostrarSucesso('PDF baixado com sucesso!');
+            mostrarSucesso('PDF completo gerado com sucesso!');
             
         } catch (error) {
             ocultarLoading();
             console.error('Erro ao gerar PDF:', error);
-            mostrarErro('Erro ao gerar PDF');
+            mostrarErro('Erro ao gerar PDF: ' + error.message);
         }
     }
     
@@ -728,22 +891,34 @@
         const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
         
         const texto = `*PMMG - STIC 7ª RPM*
-*RELATÓRIO DE ATIVIDADES*
+*RELATÓRIO TÉCNICO DE ATIVIDADES*
 
-📊 Período: ${relatorioAtual.dias} dias
+📊 *Período:* ${relatorioAtual.dias} dias
+📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
 
-📈 Indicadores:
-• Total: ${stats.total} OS
-• Finalizadas: ${stats.finalizadas}
-• Taxa de conclusão: ${stats.taxaConclusao}%
-• Tempo médio: ${stats.tempoMedio} dias
+📈 *INDICADORES:*
+• Total: *${stats.total}* OS
+• Finalizadas: *${stats.finalizadas}* (${stats.taxaConclusao}%)
+• Em andamento: *${stats.emAndamento}*
+• Tempo médio: *${stats.tempoMedio}* dias
 
-Relatório completo gerado por: ${nome}
-Data: ${new Date().toLocaleDateString('pt-BR')}`;
+📋 *PRINCIPAIS SERVIÇOS:*
+${Object.entries(stats.tiposServico).slice(0, 5).map(([tipo, qtd]) => `• ${tipo}: ${qtd} OS`).join('\n')}
+
+🔧 *TOP 3 EQUIPAMENTOS:*
+${stats.top5Equipamentos.slice(0, 3).map(([e, q], i) => `${i+1}. ${e}: ${q}`).join('\n')}
+
+✅ Relatório completo disponível em PDF
+👤 Gerado por: *${nome}*
+
+_Mensagem automática - STIC 7ª RPM_`;
         
-        const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+        // Número do WhatsApp STIC (37) 3301-0116
+        const numeroSTIC = '5537XXXXXXXX'; // ⚠️ SUBSTITUA pelo número real
+        const url = `https://wa.me/${numeroSTIC}?text=${encodeURIComponent(texto)}`;
+        
         window.open(url, '_blank');
-        mostrarSucesso('WhatsApp aberto!');
+        mostrarSucesso('WhatsApp aberto! (Configure o número correto no código)');
     }
     
     /**
@@ -753,22 +928,44 @@ Data: ${new Date().toLocaleDateString('pt-BR')}`;
         const stats = relatorioAtual.resultado.stats;
         const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
         
-        const assunto = `Relatório STIC - ${relatorioAtual.dias} dias`;
-        const corpo = `Relatório de Atividades - STIC 7ª RPM
+        // Email do gestor/comandante
+        const emailDestinatario = 'comando.7rpm@pmmg.mg.gov.br'; // ⚠️ AJUSTE conforme necessário
+        
+        const assunto = `Relatório Técnico STIC - ${relatorioAtual.dias} dias - ${new Date().toLocaleDateString('pt-BR')}`;
+        const corpo = `Prezado(a) Comandante,
 
-Período: ${relatorioAtual.dias} dias
+Segue relatório técnico das atividades da STIC no período de ${relatorioAtual.dias} dias:
+
+═══════════════════════════════════
+INDICADORES-CHAVE
+═══════════════════════════════════
 
 Total de OS: ${stats.total}
-Finalizadas: ${stats.finalizadas}
-Taxa de conclusão: ${stats.taxaConclusao}%
-Tempo médio: ${stats.tempoMedio} dias
+Finalizadas: ${stats.finalizadas} (${stats.taxaConclusao}%)
+Em andamento: ${stats.emAndamento}
+Tempo médio de atendimento: ${stats.tempoMedio} dias
 
-Gerado por: ${nome}
-Data: ${new Date().toLocaleString('pt-BR')}`;
+PRINCIPAIS SERVIÇOS:
+${Object.entries(stats.tiposServico).map(([tipo, qtd]) => `• ${tipo}: ${qtd} OS`).join('\n')}
+
+TOP 5 EQUIPAMENTOS:
+${stats.top5Equipamentos.map(([e, q], i) => `${i+1}. ${e}: ${q} atendimentos`).join('\n')}
+
+═══════════════════════════════════
+
+O relatório completo em PDF está sendo enviado em anexo (favor baixar antes de abrir este email).
+
+Atenciosamente,
+${nome}
+STIC - 7ª RPM/PMMG
+Divinópolis/MG
+Tel: (37) 3301-0116
+
+${new Date().toLocaleString('pt-BR')}`;
         
-        const mailto = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailto;
-        mostrarSucesso('Cliente de email aberto!');
+        mostrarSucesso('Cliente de email aberto! Anexe o PDF manualmente.');
     }
     </script>
 </body>
