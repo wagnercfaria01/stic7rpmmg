@@ -499,6 +499,27 @@
         <!-- Preview do Relatório -->
         <div id="relatorioPreview"></div>
         
+        <!-- ========== CONFIGURAÇÃO DE COMPARTILHAMENTO ========== -->
+        <div id="configCompartilhamento" style="display:none;background:#f8f9fa;padding:1.5rem;border-radius:8px;margin:1rem 0;border:2px solid #0066cc;">
+            <h3 style="margin-top:0;color:#0066cc;">📱 Configuração de Compartilhamento</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">📱 WhatsApp - Número do Destinatário:</label>
+                    <input type="tel" id="numeroWhatsApp" placeholder="37999999999" 
+                           style="width:100%;padding:0.75rem;border:2px solid #25d366;border-radius:6px;font-size:1rem;"
+                           value="37999999999">
+                    <small style="color:#666;display:block;margin-top:0.25rem;">Formato: DDD + número (somente números)</small>
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">📧 Email - Número de Polícia:</label>
+                    <input type="text" id="numeroPoliciaEmail" placeholder="1633965" 
+                           style="width:100%;padding:0.75rem;border:2px solid #dc3545;border-radius:6px;font-size:1rem;"
+                           value="">
+                    <small style="color:#666;display:block;margin-top:0.25rem;">Email gerado: <strong id="emailGerado">@pmmg.mg.gov.br</strong></small>
+                </div>
+            </div>
+        </div>
+        
         <!-- Botões de Ação -->
         <div class="acoes-relatorio" id="acoesRelatorio" style="display:none;">
             <button class="btn-pdf" onclick="baixarPDF()">📄 Baixar PDF</button>
@@ -527,6 +548,23 @@
     
     <script>
     let relatorioAtual = null;
+    
+    // ========== LISTENER PARA ATUALIZAR EMAIL EM TEMPO REAL ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputNumeroPolicia = document.getElementById('numeroPoliciaEmail');
+        const spanEmailGerado = document.getElementById('emailGerado');
+        
+        if (inputNumeroPolicia && spanEmailGerado) {
+            inputNumeroPolicia.addEventListener('input', (e) => {
+                const numero = e.target.value.trim();
+                if (numero) {
+                    spanEmailGerado.textContent = `${numero}@pmmg.mg.gov.br`;
+                } else {
+                    spanEmailGerado.textContent = '@pmmg.mg.gov.br';
+                }
+            });
+        }
+    });
     
     /**
      * Mostrar/ocultar filtro personalizado
@@ -733,6 +771,9 @@
             
             // 5. Mostrar botões de ação
             document.getElementById('acoesRelatorio').style.display = 'flex';
+            
+            // ========== MOSTRAR CAMPOS DE CONFIGURAÇÃO ==========
+            document.getElementById('configCompartilhamento').style.display = 'block';
             
             ocultarLoading();
             mostrarSucesso('Relatório gerado com sucesso!');
@@ -1592,39 +1633,72 @@
             // ========== NOVO: ADICIONAR GRÁFICOS ==========
             if (Object.keys(graficosGerados).length > 0) {
                 doc.addPage();
-                yPos = 20;
+                yPos = 15;
                 
-                doc.setFontSize(14);
+                // Título da página
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(0, 51, 102);
-                doc.text('GRÁFICOS E ANÁLISES VISUAIS', 20, yPos);
+                doc.text('GRÁFICOS E ANÁLISES VISUAIS', 105, yPos, { align: 'center' });
+                yPos += 8;
+                
+                // Linha separadora
+                doc.setDrawColor(0, 102, 204);
+                doc.setLineWidth(0.5);
+                doc.line(20, yPos, 190, yPos);
                 yPos += 10;
                 
-                // Gráfico 1: Status (Pizza)
+                // ===== PRIMEIRA LINHA DE GRÁFICOS =====
+                
+                // Gráfico 1: Status (Pizza) - ESQUERDA
                 if (graficosGerados.status) {
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0);
+                    doc.text('Distribuição por Status', 60, yPos, { align: 'center' });
+                    
                     const imgStatus = document.getElementById('chartStatus').toDataURL('image/png');
-                    doc.addImage(imgStatus, 'PNG', 20, yPos, 80, 80);
+                    doc.addImage(imgStatus, 'PNG', 15, yPos + 3, 90, 90);
                 }
                 
-                // Gráfico 2: Serviços (Barras)
+                // Gráfico 2: Serviços (Barras) - DIREITA
                 if (graficosGerados.servicos) {
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0);
+                    doc.text('Top 5 Tipos de Serviço', 150, yPos, { align: 'center' });
+                    
                     const imgServicos = document.getElementById('chartServicos').toDataURL('image/png');
-                    doc.addImage(imgServicos, 'PNG', 110, yPos, 90, 60);
+                    doc.addImage(imgServicos, 'PNG', 110, yPos + 3, 90, 60);
                 }
                 
-                yPos += 90;
+                yPos += 100;
                 
-                // Gráfico 3: Unidades (Barras Horizontais)
+                // ===== SEGUNDA LINHA DE GRÁFICOS =====
+                
+                // Gráfico 3: Unidades (Barras Horizontais) - ESQUERDA
                 if (graficosGerados.unidades) {
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0);
+                    doc.text('Atendimentos por Unidade', 60, yPos, { align: 'center' });
+                    
                     const imgUnidades = document.getElementById('chartUnidades').toDataURL('image/png');
-                    doc.addImage(imgUnidades, 'PNG', 20, yPos, 90, 60);
+                    doc.addImage(imgUnidades, 'PNG', 15, yPos + 3, 90, 60);
                 }
                 
-                // Gráfico 4: Tendências (Linha) - se existir
+                // Gráfico 4: Tendências (Linha) - DIREITA (se existir)
                 if (graficosGerados.tendencias) {
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0);
+                    doc.text('Evolução do Volume de OS', 150, yPos, { align: 'center' });
+                    
                     const imgTendencias = document.getElementById('chartTendencias').toDataURL('image/png');
-                    doc.addImage(imgTendencias, 'PNG', 120, yPos, 80, 50);
+                    doc.addImage(imgTendencias, 'PNG', 110, yPos + 3, 90, 50);
                 }
+                
+                yPos += 70;
             }
             
             // Assinatura (nova página se necessário)
@@ -1632,7 +1706,7 @@
                 doc.addPage();
                 yPos = 20;
             } else {
-                yPos += 70;
+                yPos += 10;
             }
             
             const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
@@ -1670,6 +1744,25 @@
      * Compartilhar relatório via WhatsApp
      */
     function compartilharWhatsApp() {
+        if (!relatorioAtual) {
+            mostrarErro('Gere um relatório primeiro!');
+            return;
+        }
+        
+        // Pegar número do campo
+        const numeroWhatsApp = document.getElementById('numeroWhatsApp').value.trim();
+        
+        if (!numeroWhatsApp) {
+            mostrarErro('Preencha o número do WhatsApp!');
+            return;
+        }
+        
+        // Validar formato (somente números)
+        if (!/^\d+$/.test(numeroWhatsApp)) {
+            mostrarErro('Número inválido! Use apenas números (ex: 37999999999)');
+            return;
+        }
+        
         const stats = relatorioAtual.resultado.stats;
         const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
         
@@ -1696,23 +1789,42 @@ ${stats.top5Equipamentos.slice(0, 3).map(([e, q], i) => `${i+1}. ${e}: ${q}`).jo
 
 _Mensagem automática - STIC 7ª RPM_`;
         
-        // Número do WhatsApp STIC (37) 3301-0116
-        const numeroSTIC = '5537XXXXXXXX'; // ⚠️ SUBSTITUA pelo número real
-        const url = `https://wa.me/${numeroSTIC}?text=${encodeURIComponent(texto)}`;
+        // Usar número do campo (adicionar 55 se não tiver)
+        const numeroCompleto = numeroWhatsApp.startsWith('55') ? numeroWhatsApp : '55' + numeroWhatsApp;
+        const url = `https://wa.me/${numeroCompleto}?text=${encodeURIComponent(texto)}`;
         
         window.open(url, '_blank');
-        mostrarSucesso('WhatsApp aberto! (Configure o número correto no código)');
+        mostrarSucesso('WhatsApp aberto com sucesso!');
     }
     
     /**
      * Enviar relatório por email
      */
     function enviarEmail() {
+        if (!relatorioAtual) {
+            mostrarErro('Gere um relatório primeiro!');
+            return;
+        }
+        
+        // Pegar número de polícia do campo
+        const numeroPolicia = document.getElementById('numeroPoliciaEmail').value.trim();
+        
+        if (!numeroPolicia) {
+            mostrarErro('Preencha o número de polícia!');
+            return;
+        }
+        
+        // Validar formato (somente números)
+        if (!/^\d+$/.test(numeroPolicia)) {
+            mostrarErro('Número de polícia inválido! Use apenas números (ex: 1633965)');
+            return;
+        }
+        
         const stats = relatorioAtual.resultado.stats;
         const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
         
-        // Email do gestor/comandante
-        const emailDestinatario = 'comando.7rpm@pmmg.mg.gov.br'; // ⚠️ AJUSTE conforme necessário
+        // Email do destinatário
+        const emailDestinatario = `${numeroPolicia}@pmmg.mg.gov.br`;
         
         const assunto = `Relatório Técnico STIC - ${relatorioAtual.dias} dias - ${new Date().toLocaleDateString('pt-BR')}`;
         const corpo = `Prezado(a) Comandante,
@@ -1748,7 +1860,7 @@ ${new Date().toLocaleString('pt-BR')}`;
         
         const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailto;
-        mostrarSucesso('Cliente de email aberto! Anexe o PDF manualmente.');
+        mostrarSucesso(`Email aberto para: ${emailDestinatario}`);
     }
     
     /**

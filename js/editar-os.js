@@ -82,6 +82,11 @@ function preencherFormulario(os) {
         document.getElementById('secaoSolucao').style.display = 'block';
         document.getElementById('solucaoOS').required = true;
     }
+    
+    // ========== CARREGAR FOTOS EXISTENTES ==========
+    if (typeof carregarFotosExistentes === 'function') {
+        carregarFotosExistentes(os);
+    }
 }
 
 // Salvar alterações
@@ -146,6 +151,22 @@ async function salvarAlteracoes() {
         
         // Adicionar ao histórico
         atualizacao.historico = firebase.firestore.FieldValue.arrayUnion(novoHistorico);
+        
+        // ========== SALVAR FOTOS ATUALIZADAS ==========
+        if (typeof fotosEditArray !== 'undefined' && fotosEditArray.length >= 0) {
+            atualizacao.fotos = fotosEditArray;
+            
+            // Adicionar ao histórico se fotos foram modificadas
+            if (JSON.stringify(fotosEditArray) !== JSON.stringify(osAtual.fotos || [])) {
+                const historicoFotos = {
+                    data: new Date().toISOString(),
+                    acao: 'Fotos atualizadas',
+                    usuario: 'Wagner - STIC',
+                    detalhes: `Total de fotos: ${fotosEditArray.length}`
+                };
+                atualizacao.historico = firebase.firestore.FieldValue.arrayUnion(novoHistorico, historicoFotos);
+            }
+        }
         
         // Atualizar no Firebase
         await ordensServicoRef.doc(osAtual.id).update(atualizacao);

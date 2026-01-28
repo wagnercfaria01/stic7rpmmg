@@ -170,7 +170,7 @@ function calcularEstatisticas(dadosOS) {
     });
     
     // ========== NOVO: SLA (Service Level Agreement) ==========
-    const metaSLA = 3; // 3 dias é a meta
+    const metaSLA = 15; // 15 dias é a meta
     let dentroSLA = 0;
     let foraSLA = 0;
     const osFora = [];
