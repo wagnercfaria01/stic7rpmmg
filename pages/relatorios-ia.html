@@ -1518,14 +1518,16 @@
             for (let i = 0; i < osParaPDF.length; i++) {
                 const os = osParaPDF[i];
                 
-                // Verificar espaço
-                if (yPos > 260) {
+                // Verificar espaço (aumentado para comportar histórico)
+                if (yPos > 220) {
                     doc.addPage();
                     yPos = 20;
                 }
                 
+                // ========== CABEÇALHO DA OS ==========
                 // Número e status
                 doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
                 doc.setTextColor(0, 51, 102);
                 doc.text(`OS #${os.numero || os.id}`, 20, yPos);
                 
@@ -1533,16 +1535,26 @@
                 const statusCor = (os.status || '').toLowerCase().includes('final') ? [46, 204, 113] : 
                                  (os.status || '').toLowerCase().includes('andamento') ? [241, 196, 15] : [52, 152, 219];
                 doc.setTextColor(statusCor[0], statusCor[1], statusCor[2]);
-                doc.text(`[${os.status || 'Aberta'}]`, 50, yPos);
-                yPos += 5;
                 
-                // Informações
+                // Status text
+                let statusText = os.status || 'Aberta';
+                if (statusText === 'finalizada') statusText = 'Finalizada ✓';
+                else if (statusText === 'em_andamento') statusText = 'Em Andamento';
+                
+                doc.text(`[${statusText}]`, 50, yPos);
+                yPos += 6;
+                
+                // ========== INFORMAÇÕES BÁSICAS ==========
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(60);
                 doc.setFontSize(8);
                 
+                const solicitanteInfo = os.solicitante?.nome || os.nome_solicitante || 'N/A';
+                const numeroPolicia = os.solicitante?.numero_policia || os.numero_policia || '';
+                const unidade = os.solicitante?.unidade || os.unidade_solicitante || '';
+                
                 const info = [
-                    `Solicitante: ${os.solicitante?.nome || os.nome_solicitante || 'N/A'}`,
+                    `Solicitante: ${solicitanteInfo}${numeroPolicia ? ' (' + numeroPolicia + ')' : ''}${unidade ? ' - ' + unidade : ''}`,
                     `Serviço: ${os.tipo_servico || os.tipo_equipamento || 'N/A'}`,
                     `Equipamento: ${os.tipo_equipamento || 'N/A'}`,
                 ];
@@ -1558,43 +1570,173 @@
                 doc.setFontSize(8);
                 const descLinhas = doc.splitTextToSize(`Descrição: ${descricao}`, 168);
                 doc.text(descLinhas, 22, yPos);
-                yPos += descLinhas.length * 4 + 2;
+                yPos += descLinhas.length * 4 + 4;
                 
-                // Fotos (se houver)
-                if (os.fotos && os.fotos.length > 0) {
-                    try {
-                        doc.setTextColor(100);
-                        doc.text(`📷 ${os.fotos.length} foto(s) anexada(s)`, 22, yPos);
-                        yPos += 4;
+                // ========== HISTÓRICO DE ATENDIMENTO ==========
+                if (os.historico && os.historico.length > 0) {
+                    // Verificar espaço
+                    if (yPos > 230) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Caixa de histórico
+                    doc.setDrawColor(0, 51, 102);
+                    doc.setLineWidth(0.3);
+                    doc.setFillColor(248, 249, 250);
+                    const historicHeight = Math.min(os.historico.length * 10 + 10, 60);
+                    doc.rect(22, yPos, 168, historicHeight, 'FD');
+                    
+                    // Título
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('📝 HISTÓRICO DE ATENDIMENTO', 24, yPos + 5);
+                    yPos += 9;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.setTextColor(60);
+                    
+                    // Listar histórico (últimas 5 entradas)
+                    const historicoLimitado = os.historico.slice(-5);
+                    
+                    for (const hist of historicoLimitado) {
+                        if (yPos > 265) break; // Não ultrapassar página
                         
-                        // Adicionar até 2 fotos inline
-                        for (let j = 0; j < Math.min(2, os.fotos.length); j++) {
-                            const foto = os.fotos[j];
-                            if (foto.thumbnail || foto.url) {
+                        // Ícone baseado na ação
+                        let icone = '•';
+                        if (hist.acao.includes('Criada')) icone = '✓';
+                        else if (hist.acao.includes('alterado')) icone = '⚙';
+                        else if (hist.acao.includes('Comentário')) icone = '💬';
+                        else if (hist.acao.includes('Finalizada')) icone = '✅';
+                        else if (hist.acao.includes('Fotos')) icone = '📸';
+                        
+                        // Data e ação
+                        const dataHist = hist.data ? new Date(hist.data).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'N/A';
+                        
+                        doc.text(`${icone} ${dataHist} - ${hist.acao}`, 26, yPos);
+                        yPos += 3.5;
+                        
+                        // Mostrar "Por:" se tiver usuário
+                        if (hist.usuario) {
+                            doc.setTextColor(100);
+                            doc.text(`   Por: ${hist.usuario}`, 26, yPos);
+                            yPos += 3.5;
+                            doc.setTextColor(60);
+                        }
+                        
+                        // Comentário (se houver)
+                        if (hist.comentario) {
+                            doc.setTextColor(0);
+                            const comentarioLinhas = doc.splitTextToSize(`   "${hist.comentario}"`, 160);
+                            doc.text(comentarioLinhas.slice(0, 2), 26, yPos); // Máx 2 linhas
+                            yPos += Math.min(comentarioLinhas.length, 2) * 3.5;
+                            doc.setTextColor(60);
+                        }
+                        
+                        yPos += 1; // Espaço entre entradas
+                    }
+                    
+                    yPos += 3;
+                    
+                    // Calcular tempo decorrido
+                    if (os.data_abertura) {
+                        const dataAbertura = os.data_abertura.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura);
+                        const dataFim = os.data_finalizacao ? 
+                            (os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao)) :
+                            new Date();
+                        
+                        const diffMs = dataFim - dataAbertura;
+                        const diffHoras = Math.floor(diffMs / (1000 * 60 * 60));
+                        const diffMinutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        let tempoTexto = '';
+                        if (diffHoras >= 24) {
+                            tempoTexto = `${Math.floor(diffHoras / 24)} dia(s)`;
+                        } else if (diffHoras > 0) {
+                            tempoTexto = `${diffHoras}h ${diffMinutos}min`;
+                        } else {
+                            tempoTexto = `${diffMinutos} minutos`;
+                        }
+                        
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor(100);
+                        doc.text(`⏱ Tempo ${os.status === 'finalizada' ? 'total' : 'decorrido'}: ${tempoTexto}`, 26, yPos);
+                        yPos += 4;
+                    }
+                }
+                
+                // ========== FOTOS DA INTERVENÇÃO ==========
+                if (os.fotos && os.fotos.length > 0) {
+                    // Verificar espaço
+                    if (yPos > 210) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Caixa de fotos
+                    doc.setDrawColor(0, 102, 204);
+                    doc.setLineWidth(0.3);
+                    doc.setFillColor(240, 248, 255);
+                    
+                    // Título
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(0, 51, 102);
+                    doc.text(`📸 FOTOS DA INTERVENÇÃO (${os.fotos.length})`, 24, yPos + 5);
+                    yPos += 10;
+                    
+                    try {
+                        // Mostrar até 2 fotos lado a lado
+                        const fotosParaMostrar = os.fotos.slice(0, 2);
+                        const fotoWidth = 75;
+                        const fotoHeight = 50;
+                        
+                        for (let j = 0; j < fotosParaMostrar.length; j++) {
+                            const foto = fotosParaMostrar[j];
+                            if (foto.url || foto.thumbnail) {
                                 try {
-                                    // Verificar espaço para foto
-                                    if (yPos > 230) {
-                                        doc.addPage();
-                                        yPos = 20;
-                                    }
+                                    const xPos = 24 + (j * (fotoWidth + 5));
                                     
-                                    doc.addImage(foto.thumbnail || foto.url, 'JPEG', 22, yPos, 40, 30);
-                                    if (foto.legenda) {
+                                    // Adicionar imagem
+                                    doc.addImage(
+                                        foto.thumbnail || foto.url, 
+                                        'JPEG', 
+                                        xPos, 
+                                        yPos, 
+                                        fotoWidth, 
+                                        fotoHeight
+                                    );
+                                    
+                                    // Descrição da foto
+                                    if (foto.descricao) {
+                                        doc.setFont('helvetica', 'normal');
                                         doc.setFontSize(7);
-                                        doc.text(foto.legenda.substring(0, 50), 22, yPos + 32);
+                                        doc.setTextColor(60);
+                                        const descFoto = doc.splitTextToSize(foto.descricao, fotoWidth - 2);
+                                        doc.text(descFoto.slice(0, 2), xPos + 1, yPos + fotoHeight + 3);
                                     }
-                                    yPos += 35;
                                 } catch (imgErr) {
                                     console.warn('Erro ao adicionar foto:', imgErr);
                                 }
                             }
                         }
+                        
+                        yPos += fotoHeight + 10;
+                        
                     } catch (err) {
                         console.warn('Erro ao processar fotos:', err);
                     }
                 }
                 
-                // Linha separadora
+                // Linha separadora entre OS
                 doc.setDrawColor(200);
                 doc.setLineWidth(0.1);
                 doc.line(20, yPos, 190, yPos);
