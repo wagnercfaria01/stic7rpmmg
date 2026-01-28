@@ -13,7 +13,7 @@ export async function handler(event) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
+          model: "llama-3.3-70b-versatile", // ✅ Modelo atualizado (Jan 2026)
           messages: payload.messages,
           temperature: 0.7,
           max_tokens: 800

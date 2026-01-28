@@ -36,7 +36,7 @@ async function analisarPatrimonioIA(patrimonio) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama-3.1-70b-versatile', // Modelo rápido e grátis
+                model: 'llama-3.3-70b-versatile', // ✅ Modelo atualizado (Jan 2026) - Gratuito
                 messages: [
                     {
                         role: 'system',

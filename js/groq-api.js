@@ -8,7 +8,7 @@ const GroqConfig = {
     apiUrl: '/.netlify/functions/groq',
     
     // Melhor modelo disponível
-    model: 'llama-3.1-70b-versatile', // Rápido e excelente qualidade
+    model: 'llama-3.3-70b-versatile', // ✅ Modelo atualizado (Jan 2026) - Gratuito
     // Alternativas:
     // 'llama-3.1-405b-reasoning' - Melhor qualidade, mais lento
     // 'mixtral-8x7b-32768' - Ótimo para contextos longos
