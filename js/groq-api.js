@@ -406,6 +406,7 @@ function buscarPeriodoAnterior(periodoAtual) {
         console.warn('⚠️ Erro ao buscar período anterior:', error);
         return null;
     }
+}
 
 /**
  * Criar prompt para a IA
