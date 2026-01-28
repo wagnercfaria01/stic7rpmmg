@@ -1496,8 +1496,38 @@
             doc.text(resumoLinhas, 20, yPos);
             yPos += (resumoLinhas.length * 4) + 8;
             
+            // ========== RECALCULAR STATS PARA PDF ==========
+            const statsCorrigidosPDF = {
+                total: relatorioAtual.osArray.length,
+                finalizadas: relatorioAtual.osArray.filter(os => os.status === 'finalizada').length,
+                emAndamento: relatorioAtual.osArray.filter(os => 
+                    os.status === 'em_andamento' || 
+                    os.status === 'em_manutencao' || 
+                    os.status === 'aguardando_peca' ||
+                    os.status === 'aguardando_aprovacao' ||
+                    os.status === 'pausada' ||
+                    os.status === 'enviado_bh' ||
+                    os.status === 'aguardando_teste' ||
+                    os.status === 'testada' ||
+                    os.status === 'pronta_retirada'
+                ).length,
+                abertas: relatorioAtual.osArray.filter(os => os.status === 'aberta' || !os.status).length
+            };
+            
+            statsCorrigidosPDF.percentualFinalizadas = statsCorrigidosPDF.total > 0 
+                ? Math.round((statsCorrigidosPDF.finalizadas / statsCorrigidosPDF.total) * 100) 
+                : 0;
+            
+            statsCorrigidosPDF.taxaConclusao = statsCorrigidosPDF.percentualFinalizadas;
+            statsCorrigidosPDF.tempoMedio = relatorioAtual.resultado.stats.tempoMedio || '0';
+            
+            // Mesclar com stats da IA
+            const stats = {
+                ...relatorioAtual.resultado.stats,
+                ...statsCorrigidosPDF
+            };
+            
             // Indicadores em caixas
-            const stats = relatorioAtual.resultado.stats;
             
             if (yPos > 200) {
                 doc.addPage();
@@ -1571,24 +1601,34 @@
                 }
                 
                 // ========== CABEÇALHO DA OS ==========
-                // Número e status
+                // Número e status em linha única
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.setTextColor(0, 51, 102);
-                doc.text(`OS #${os.numero || os.id}`, 20, yPos);
                 
-                // Status com cor
+                // Simplificar número (sem duplicar "OS")
+                let numeroOS = (os.numero || os.id).toString();
+                // Se já começa com "OS", não adicionar nada
+                if (!numeroOS.startsWith('OS')) {
+                    numeroOS = `OS${numeroOS}`;
+                }
+                doc.text(numeroOS, 20, yPos);
+                
+                // Status com cor (posicionado após o número, com espaço adequado)
                 const statusCor = (os.status || '').toLowerCase().includes('final') ? [46, 204, 113] : 
                                  (os.status || '').toLowerCase().includes('andamento') ? [241, 196, 15] : [52, 152, 219];
                 doc.setTextColor(statusCor[0], statusCor[1], statusCor[2]);
                 
-                // Status text
+                // Status text (SEM emoji)
                 let statusText = os.status || 'Aberta';
-                if (statusText === 'finalizada') statusText = 'Finalizada ✓';
+                if (statusText === 'finalizada') statusText = 'Finalizada';
                 else if (statusText === 'em_andamento') statusText = 'Em Andamento';
+                else if (statusText === 'em_manutencao') statusText = 'Em Manutencao';
+                else if (statusText === 'aguardando_peca') statusText = 'Aguardando Peca';
                 
-                doc.text(`[${statusText}]`, 50, yPos);
-                yPos += 6;
+                // Posicionar status com espaço suficiente
+                doc.text(`[${statusText}]`, 70, yPos);
+                yPos += 8; // Espaço maior para não sobrepor
                 
                 // ========== INFORMAÇÕES BÁSICAS ==========
                 doc.setFont('helvetica', 'normal');
@@ -1616,108 +1656,9 @@
                 doc.setFontSize(8);
                 const descLinhas = doc.splitTextToSize(`Descrição: ${descricao}`, 168);
                 doc.text(descLinhas, 22, yPos);
-                yPos += descLinhas.length * 4 + 4;
+                yPos += descLinhas.length * 4 + 6;
                 
-                // ========== HISTÓRICO DE ATENDIMENTO ==========
-                if (os.historico && os.historico.length > 0) {
-                    // Verificar espaço
-                    if (yPos > 230) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    
-                    // Caixa de histórico
-                    doc.setDrawColor(0, 51, 102);
-                    doc.setLineWidth(0.3);
-                    doc.setFillColor(248, 249, 250);
-                    const historicHeight = Math.min(os.historico.length * 10 + 10, 60);
-                    doc.rect(22, yPos, 168, historicHeight, 'FD');
-                    
-                    // Título
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8);
-                    doc.setTextColor(0, 51, 102);
-                    doc.text('HISTORICO DE ATENDIMENTO', 24, yPos + 5);
-                    yPos += 9;
-                    
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(7);
-                    doc.setTextColor(60);
-                    
-                    // Listar histórico (últimas 5 entradas)
-                    const historicoLimitado = os.historico.slice(-5);
-                    
-                    for (const hist of historicoLimitado) {
-                        if (yPos > 265) break; // Não ultrapassar página
-                        
-                        // Ícone baseado na ação (símbolos ASCII que funcionam no PDF)
-                        let icone = '>';
-                        if (hist.acao.includes('Criada')) icone = '+';
-                        else if (hist.acao.includes('alterado')) icone = '>';
-                        else if (hist.acao.includes('Comentário') || hist.acao.includes('Comentario')) icone = '*';
-                        else if (hist.acao.includes('Finalizada')) icone = 'OK';
-                        else if (hist.acao.includes('Fotos')) icone = '#';
-                        
-                        // Data e ação
-                        const dataHist = hist.data ? new Date(hist.data).toLocaleString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : 'N/A';
-                        
-                        doc.text(`${icone} ${dataHist} - ${hist.acao}`, 26, yPos);
-                        yPos += 3.5;
-                        
-                        // Mostrar "Por:" se tiver usuário
-                        if (hist.usuario) {
-                            doc.setTextColor(100);
-                            doc.text(`   Por: ${hist.usuario}`, 26, yPos);
-                            yPos += 3.5;
-                            doc.setTextColor(60);
-                        }
-                        
-                        // Comentário (se houver)
-                        if (hist.comentario) {
-                            doc.setTextColor(0);
-                            const comentarioLinhas = doc.splitTextToSize(`   "${hist.comentario}"`, 160);
-                            doc.text(comentarioLinhas.slice(0, 2), 26, yPos); // Máx 2 linhas
-                            yPos += Math.min(comentarioLinhas.length, 2) * 3.5;
-                            doc.setTextColor(60);
-                        }
-                        
-                        yPos += 1; // Espaço entre entradas
-                    }
-                    
-                    yPos += 3;
-                    
-                    // Calcular tempo decorrido
-                    if (os.data_abertura) {
-                        const dataAbertura = os.data_abertura.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura);
-                        const dataFim = os.data_finalizacao ? 
-                            (os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao)) :
-                            new Date();
-                        
-                        const diffMs = dataFim - dataAbertura;
-                        const diffHoras = Math.floor(diffMs / (1000 * 60 * 60));
-                        const diffMinutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                        
-                        let tempoTexto = '';
-                        if (diffHoras >= 24) {
-                            tempoTexto = `${Math.floor(diffHoras / 24)} dia(s)`;
-                        } else if (diffHoras > 0) {
-                            tempoTexto = `${diffHoras}h ${diffMinutos}min`;
-                        } else {
-                            tempoTexto = `${diffMinutos} minutos`;
-                        }
-                        
-                        doc.setFont('helvetica', 'bold');
-                        doc.setTextColor(100);
-                        doc.text(`Tempo ${os.status === 'finalizada' ? 'total' : 'decorrido'}: ${tempoTexto}`, 26, yPos);
-                        yPos += 4;
-                    }
-                }
+                // ========== HISTÓRICO REMOVIDO - Agora vai no resumo executivo ==========
                 
                 // ========== FOTOS DA INTERVENÇÃO ==========
                 if (os.fotos && os.fotos.length > 0) {

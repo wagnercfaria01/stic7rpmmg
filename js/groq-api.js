@@ -100,21 +100,20 @@ async function gerarResumoIA(dadosOS, periodo) {
         
         const textoIA = data.choices[0].message.content;
         
-        // Tentar parsear JSON se a IA retornou estruturado
-        let resumoFinal = textoIA;
+        // Como agora pedimos apenas o resumo em texto puro, usar direto
+        let resumoFinal = textoIA.trim();
         let insights = [];
         
-        try {
-            // Verificar se tem JSON no texto
-            const jsonMatch = textoIA.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
+        // Tentar parsear JSON APENAS se tiver formato JSON
+        if (textoIA.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(textoIA);
                 resumoFinal = parsed.resumo || textoIA;
                 insights = parsed.insights || [];
+            } catch (e) {
+                // Se não conseguir parsear, usa o texto direto
+                console.log('ℹ️ Usando texto puro como resumo');
             }
-        } catch (e) {
-            // Se não conseguir parsear, usa o texto direto
-            console.log('ℹ️ Resposta em texto puro (não JSON)');
         }
         
         console.log('✅ Resumo gerado com sucesso!');
@@ -412,12 +411,48 @@ function buscarPeriodoAnterior(periodoAtual) {
  * Criar prompt para a IA
  */
 function criarPromptRelatorio(stats, periodo, dadosOS) {
-    // Extrair descrições das OS para contexto
-    const resumoOS = dadosOS.slice(0, 10).map(os => {
+    // ========== EXTRAIR HISTÓRICOS DETALHADOS ==========
+    const osComHistorico = dadosOS.slice(0, 10).map(os => {
         const desc = (os.defeito || os.descricao_servico || os.observacoes || '').substring(0, 150);
         const tipo = os.tipo_servico || os.tipo_equipamento || 'Serviço';
-        const status = os.status || 'Em andamento';
-        return `• ${tipo}: ${desc} [${status}]`;
+        const status = os.status || 'em_andamento';
+        const numero = os.numero || os.id;
+        
+        // Extrair comentários e ações do histórico
+        let detalhesTrabalho = '';
+        if (os.historico && os.historico.length > 0) {
+            const comentarios = os.historico
+                .filter(h => h.comentario && h.comentario.trim())
+                .map(h => h.comentario)
+                .join('. ');
+            
+            if (comentarios) {
+                detalhesTrabalho = `\n  Trabalho realizado: ${comentarios}`;
+            }
+        }
+        
+        // Calcular tempo gasto
+        let tempoGasto = '';
+        if (os.data_abertura) {
+            const dataAbertura = os.data_abertura.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura);
+            const dataFim = os.data_finalizacao ? 
+                (os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao)) :
+                new Date();
+            
+            const diffMs = dataFim - dataAbertura;
+            const diffHoras = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMinutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (diffHoras >= 24) {
+                tempoGasto = ` (${Math.floor(diffHoras / 24)} dia(s))`;
+            } else if (diffHoras > 0) {
+                tempoGasto = ` (${diffHoras}h ${diffMinutos}min)`;
+            } else {
+                tempoGasto = ` (${diffMinutos} min)`;
+            }
+        }
+        
+        return `• ${numero} - ${tipo}: ${desc} [${status}]${tempoGasto}${detalhesTrabalho}`;
     }).join('\n');
     
     // Análise de desempenho SLA
@@ -443,7 +478,7 @@ Taxa conclusão: ${t.taxaAtual}% (anterior: ${t.taxaAnterior}%) ${t.taxaVariacao
         textoTendencias = '\n[PRIMEIRO PERÍODO - Sem dados para comparação]';
     }
     
-    return `Você é um analista técnico da STIC (Seção de TI) da 7ª RPM/PMMG. Crie um RELATÓRIO PROFISSIONAL em formato JSON.
+    return `Você é um analista técnico da STIC (Seção de TI) da 7ª RPM/PMMG. Crie um RESUMO EXECUTIVO DETALHADO mostrando O TRABALHO QUE FOI REALIZADO.
 
 ═══════════════════════════════════
 DADOS DO PERÍODO: ${periodo.texto}
@@ -453,6 +488,7 @@ DADOS DO PERÍODO: ${periodo.texto}
 • Total: ${stats.total} OS
 • Finalizadas: ${stats.finalizadas} (${stats.percentualFinalizadas}%)
 • Em andamento: ${stats.emAndamento}
+• Abertas: ${stats.abertas}
 • Tempo médio: ${stats.tempoMedio} dias
 • Taxa de conclusão: ${stats.taxaConclusao}%
 
@@ -460,7 +496,7 @@ DADOS DO PERÍODO: ${periodo.texto}
 • Dentro do prazo: ${stats.sla.dentroSLA} OS (${stats.sla.percentualSLA}%)
 • Fora do prazo: ${stats.sla.foraSLA} OS
 • STATUS: ${slaStatus} ${slaEmoji}
-${stats.sla.osFora.length > 0 ? `• Principais atrasos:\n${stats.sla.osFora.map(o => `  - OS ${o.numero}: ${o.tempo}d - ${o.tipo}`).join('\n')}` : ''}
+${stats.sla.osFora.length > 0 ? `• Principais atrasos:\n${stats.sla.osFora.map(o => `  - ${o.numero}: ${o.tempo}d - ${o.tipo}`).join('\n')}` : ''}
 
 ${textoTendencias}
 
@@ -471,34 +507,47 @@ ${textoTendencias}
 🔧 TOP 5 SERVIÇOS:
 ${Object.entries(stats.tiposServico).slice(0, 5).map(([tipo, qtd]) => `• ${tipo}: ${qtd} OS`).join('\n')}
 
-📝 EXEMPLOS DE ATENDIMENTOS:
-${resumoOS}
+📝 DETALHES DOS ATENDIMENTOS (COM HISTÓRICO):
+${osComHistorico}
 
 ═══════════════════════════════════
-INSTRUÇÕES - GERE UM JSON:
+INSTRUÇÕES CRÍTICAS:
 ═══════════════════════════════════
 
-Retorne APENAS um objeto JSON (sem markdown, sem backticks) com esta estrutura:
+Crie um RESUMO EXECUTIVO de 200-300 palavras que:
 
-{
-  "resumo": "Parágrafo executivo de 150-200 palavras. Use linguagem técnica, formal e objetiva. Destaque as principais ações realizadas (implementação, configuração, manutenção), desempenho do SLA, e resultados numéricos. ${stats.tendencias ? 'Mencione as melhorias em relação ao período anterior.' : 'É o primeiro período de análise.'} Conclua com perspectivas proativas.",
-  
-  "insights": [
-    "✅ PONTO FORTE: [Identifique 1-2 pontos positivos baseados nos dados. Ex: SLA excelente, tempo de atendimento abaixo da meta, produtividade alta]",
-    
-    "⚠️ ATENÇÃO: [Identifique 1-2 pontos de atenção. Ex: aumento em certo tipo de serviço, OS fora do SLA, unidade com sobrecarga]",
-    
-    "💡 RECOMENDAÇÃO: [Sugira 2-3 ações práticas e concretas. Ex: criar estoque de peças, manutenção preventiva, reforçar equipe em dia específico, capacitação técnica]"
-  ]
-}
+1. MOSTRE O TRABALHO REALIZADO - Use as informações dos comentários do histórico para detalhar:
+   - O QUE foi feito em cada OS
+   - COMO foram resolvidos os problemas
+   - Ações técnicas específicas (identificação, configuração, organização, etc.)
 
-REGRAS IMPORTANTES:
-✓ Foque em DADOS e AÇÕES CONCRETAS
-✓ Use terminologia técnica (implementação, configuração, solução)
-✓ Seja OBJETIVO e DIRETO
-✓ ${stats.tendencias ? 'Valorize as melhorias identificadas' : 'Estabeleça baseline para próximos períodos'}
-✓ Recomendações devem ser PRÁTICAS e IMPLEMENTÁVEIS
-✓ Retorne APENAS o JSON, sem formatação markdown`;
+2. SEJA ESPECÍFICO sobre as atividades:
+   ✓ "Foram realizadas intervenções em sistemas elétricos, incluindo identificação e separação de circuitos..."
+   ✓ "Executou-se a organização de cabeamento em racks, com abertura e inspeção de QDCs..."
+   ✓ "Procedeu-se à restauração de backups em notebook apresentando travamentos..."
+   
+3. DESTAQUE as OS pendentes:
+   - Quantas estão em andamento
+   - Qual o status atual de cada uma
+   - Previsão de conclusão
+   
+4. MOSTRE PRODUTIVIDADE:
+   - ${stats.finalizadas} OS finalizadas com sucesso
+   - Tempo médio de ${stats.tempoMedio} dias
+   - ${stats.sla.percentualSLA}% dentro do SLA
+
+5. USE linguagem técnica e formal, como:
+   - "Procedeu-se", "Executou-se", "Realizou-se"
+   - "Implementação", "Configuração", "Diagnóstico"
+   - "Intervenção técnica", "Solução aplicada"
+
+RETORNE APENAS O TEXTO DO RESUMO (SEM JSON, SEM TÍTULO, SEM FORMATAÇÃO).
+O texto deve ser contínuo, em um único parágrafo bem estruturado.
+
+IMPORTANTE: 
+- Mencione ESPECIFICAMENTE o trabalho feito (use os comentários do histórico)
+- Demonstre que a equipe trabalhou muito e bem
+- Seja objetivo e profissional`;
 }
 
 /**
