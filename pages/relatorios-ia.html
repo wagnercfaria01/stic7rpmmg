@@ -231,6 +231,179 @@
             border-radius: 8px;
         }
         
+        /* ========== NOVOS ESTILOS: SLA ========== */
+        .sla-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: white;
+            margin: 1.5rem 0;
+        }
+        
+        .sla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .sla-meta {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .sla-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+        
+        .sla-status.excelente { background: #28a745; }
+        .sla-status.bom { background: #17a2b8; }
+        .sla-status.regular { background: #ffc107; color: #333; }
+        .sla-status.critico { background: #dc3545; }
+        
+        .sla-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .sla-card {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .sla-card-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sla-card-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        /* ========== NOVOS ESTILOS: TENDÊNCIAS ========== */
+        .tendencias-container {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        
+        .tendencia-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .tendencia-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .tendencia-valor {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .tendencia-alta { color: #28a745; }
+        .tendencia-baixa { color: #dc3545; }
+        .tendencia-estavel { color: #6c757d; }
+        
+        .tendencia-icone {
+            font-size: 1.5rem;
+        }
+        
+        /* ========== NOVOS ESTILOS: POR UNIDADE ========== */
+        .unidades-container {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        
+        .unidade-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #007bff;
+        }
+        
+        .unidade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .unidade-nome {
+            font-weight: bold;
+            color: #003366;
+            font-size: 1.05rem;
+        }
+        
+        .unidade-badge {
+            background: #007bff;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .unidade-detalhes {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        
+        /* ========== BOTÃO EXCEL ========== */
+        .btn-excel {
+            background: #217346;
+            color: white;
+        }
+        
+        .btn-excel:hover {
+            background: #1a5a37;
+        }
+        
+        .graficos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .grafico-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .grafico-titulo {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .assinatura-fields {
                 grid-template-columns: 1fr;
@@ -245,6 +418,10 @@
             }
         }
     </style>
+    
+    <!-- Bibliotecas para gráficos e Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <header>
@@ -309,6 +486,7 @@
         <!-- Botões de Ação -->
         <div class="acoes-relatorio" id="acoesRelatorio" style="display:none;">
             <button class="btn-pdf" onclick="baixarPDF()">📄 Baixar PDF</button>
+            <button class="btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
             <button class="btn-whatsapp" onclick="compartilharWhatsApp()">💬 Compartilhar WhatsApp</button>
             <button class="btn-email" onclick="enviarEmail()">📧 Enviar Email</button>
         </div>
@@ -491,15 +669,19 @@
                 dataFim: new Date().toLocaleDateString('pt-BR')
             });
             
+            // 2.5. Analisar tendências (comparar com período anterior)
+            const tendencias = await analisarTendencias(resultado.stats, dias);
+            
             // 3. Renderizar relatório
-            renderizarRelatorio(resultado, osArray, dias);
+            renderizarRelatorio(resultado, osArray, dias, tendencias);
             
             // 4. Salvar para exportação
             relatorioAtual = {
                 resultado,
                 osArray,
                 dias,
-                dataGeracao: new Date()
+                dataGeracao: new Date(),
+                tendencias
             };
             
             // 5. Mostrar botões de ação
@@ -521,6 +703,7 @@
     function renderizarRelatorio(resultado, osArray, dias) {
         const preview = document.getElementById('relatorioPreview');
         const stats = resultado.stats;
+        const insights = resultado.insights || [];
         
         let html = `
             <div class="relatorio-header">
@@ -529,66 +712,200 @@
                 <h2>STIC - SEÇÃO DE TECNOLOGIA DA INFORMAÇÃO</h2>
                 <h3>RELATÓRIO DE ATIVIDADES</h3>
                 <p style="margin-top:1rem;color:#666;">
-                    Período: ${resultado.stats.dataInicio || 'N/A'} a ${resultado.stats.dataFim || new Date().toLocaleDateString('pt-BR')}
+                    Período: ${stats.dataInicio || 'Últimos ' + dias + ' dias'} | Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
                 </p>
             </div>
             
-            <!-- Resumo Executivo -->
+            <!-- Indicadores Principais -->
             <div class="secao">
-                <h3>📊 RESUMO EXECUTIVO</h3>
-                <div class="resumo-executivo">${resultado.resumo}</div>
-            </div>
-            
-            <!-- Indicadores -->
-            <div class="secao">
-                <h3>📈 INDICADORES-CHAVE</h3>
+                <h3>📊 INDICADORES-CHAVE</h3>
                 <div class="indicadores-grid">
-                    <div class="indicador-card">
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;">
                         <div class="indicador-valor">${stats.total}</div>
                         <div class="indicador-label">Total de OS</div>
                     </div>
-                    <div class="indicador-card success">
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #28a745 0%, #20c997 100%);color:white;">
                         <div class="indicador-valor">${stats.finalizadas}</div>
-                        <div class="indicador-label">Finalizadas</div>
+                        <div class="indicador-label">Finalizadas (${stats.percentualFinalizadas}%)</div>
                     </div>
-                    <div class="indicador-card warning">
-                        <div class="indicador-valor">${stats.tempoMedio}</div>
-                        <div class="indicador-label">Dias (tempo médio)</div>
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #ffc107 0%, #ff9800 100%);color:white;">
+                        <div class="indicador-valor">${stats.tempoMedio}d</div>
+                        <div class="indicador-label">Tempo Médio</div>
                     </div>
-                    <div class="indicador-card">
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #17a2b8 0%, #138496 100%);color:white;">
                         <div class="indicador-valor">${stats.taxaConclusao}%</div>
                         <div class="indicador-label">Taxa de Conclusão</div>
                     </div>
                 </div>
             </div>
             
+            <!-- ========== NOVO: CARD SLA ========== -->
+            <div class="secao">
+                <h3>⏱️ ANÁLISE DE SLA (Service Level Agreement)</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;border-left:4px solid ${stats.sla.percentualSLA >= 90 ? '#28a745' : stats.sla.percentualSLA >= 80 ? '#ffc107' : '#dc3545'}">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:2.5rem;font-weight:bold;color:${stats.sla.percentualSLA >= 90 ? '#28a745' : stats.sla.percentualSLA >= 80 ? '#ffc107' : '#dc3545'}">
+                                ${stats.sla.percentualSLA}%
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Cumprimento de SLA</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;font-weight:bold;color:#28a745;">
+                                ✅ ${stats.sla.dentroSLA}
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Dentro do Prazo</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;font-weight:bold;color:#dc3545;">
+                                ❌ ${stats.sla.foraSLA}
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Fora do Prazo</div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:1rem;background:white;border-radius:6px;">
+                        <strong style="font-size:1.2rem;">Status: ${stats.sla.status} ${stats.sla.emoji}</strong>
+                        <div style="color:#666;margin-top:0.5rem;">Meta: Resolver em até ${stats.sla.meta} dias</div>
+                    </div>
+                    ${stats.sla.osFora.length > 0 ? `
+                    <div style="margin-top:1rem;padding:1rem;background:white;border-radius:6px;">
+                        <strong style="color:#dc3545;">⚠️ OS Fora do SLA:</strong>
+                        <ul style="margin:0.5rem 0;padding-left:1.5rem;">
+                            ${stats.sla.osFora.map(os => `
+                                <li><strong>OS-${os.numero}</strong>: ${os.tipo} - ${os.tempo} dias</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <!-- ========== NOVO: CARD TENDÊNCIAS ========== -->
+            ${stats.tendencias ? `
+            <div class="secao">
+                <h3>📈 COMPARATIVO COM PERÍODO ANTERIOR</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;">
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Total de OS</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.totalAtual}</div>
+                            <div style="color:${stats.tendencias.totalMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.totalVariacao} ${stats.tendencias.totalMelhorou ? '↑' : '↓'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.totalAnterior}</div>
+                        </div>
+                        
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Tempo Médio</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.tempoAtual}d</div>
+                            <div style="color:${stats.tendencias.tempoMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.tempoVariacao} ${stats.tendencias.tempoMelhorou ? '↓ Melhorou' : '↑ Piorou'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.tempoAnterior}d</div>
+                        </div>
+                        
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Taxa de Conclusão</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.taxaAtual}%</div>
+                            <div style="color:${stats.tendencias.taxaMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.taxaVariacao} ${stats.tendencias.taxaMelhorou ? '↑' : '↓'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.taxaAnterior}%</div>
+                        </div>
+                    </div>
+                    
+                    ${stats.tendencias.tempoMelhorou || stats.tendencias.taxaMelhorou ? `
+                    <div style="margin-top:1rem;padding:1rem;background:white;border-radius:6px;border-left:3px solid #28a745;">
+                        <strong style="color:#28a745;">✅ MELHORIAS IDENTIFICADAS:</strong>
+                        <ul style="margin:0.5rem 0;padding-left:1.5rem;">
+                            ${stats.tendencias.tempoMelhorou ? `<li>Redução de tempo de atendimento em ${stats.tendencias.tempoVariacao.replace('+', '')}</li>` : ''}
+                            ${stats.tendencias.taxaMelhorou ? `<li>Aumento na taxa de conclusão em ${stats.tendencias.taxaVariacao}</li>` : ''}
+                            ${stats.tendencias.totalMelhorou ? `<li>Aumento de produtividade: ${stats.tendencias.totalVariacao} mais OS atendidas</li>` : ''}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : `
+            <div class="secao">
+                <div style="background:#e7f3ff;padding:1rem;border-radius:6px;text-align:center;color:#0066cc;">
+                    <strong>ℹ️ PRIMEIRO PERÍODO DE ANÁLISE</strong>
+                    <p style="margin:0.5rem 0;">A partir do próximo relatório, você verá comparações de tendências!</p>
+                </div>
+            </div>
+            `}
+            
+            <!-- Resumo Executivo -->
+            <div class="secao">
+                <h3>📄 RESUMO EXECUTIVO</h3>
+                <div class="resumo-executivo" style="background:#f8f9fa;padding:1.5rem;border-radius:8px;line-height:1.8;">
+                    ${resultado.resumo}
+                </div>
+            </div>
+            
+            <!-- ========== NOVO: CARD INSIGHTS DA IA ========== -->
+            ${insights.length > 0 ? `
+            <div class="secao">
+                <h3>🤖 INSIGHTS E RECOMENDAÇÕES DA IA</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                    ${insights.map(insight => {
+                        let bgColor = '#f8f9fa';
+                        let borderColor = '#dee2e6';
+                        
+                        if (insight.includes('PONTO FORTE') || insight.includes('✅')) {
+                            bgColor = '#d4edda';
+                            borderColor = '#28a745';
+                        } else if (insight.includes('ATENÇÃO') || insight.includes('⚠️')) {
+                            bgColor = '#fff3cd';
+                            borderColor = '#ffc107';
+                        } else if (insight.includes('RECOMENDAÇÃO') || insight.includes('💡')) {
+                            bgColor = '#d1ecf1';
+                            borderColor = '#17a2b8';
+                        }
+                        
+                        return `
+                            <div style="background:${bgColor};padding:1rem;margin-bottom:0.75rem;border-radius:6px;border-left:4px solid ${borderColor};">
+                                ${insight}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
             <!-- Principais Serviços -->
             <div class="secao">
-                <h3>🔧 SERVIÇOS REALIZADOS</h3>
+                <h3>🔧 SERVIÇOS REALIZADOS (Top 10 OS)</h3>
                 <div style="background:#f8f9fa;padding:1rem;border-radius:8px;">
         `;
         
         // Listar top 10 OS
         osArray.slice(0, 10).forEach((os, index) => {
+            const statusColor = (os.status || '').toLowerCase().includes('final') ? '#28a745' : 
+                               (os.status || '').toLowerCase().includes('andamento') ? '#ffc107' : '#17a2b8';
+            
             html += `
-                <div class="os-detalhada">
-                    <strong>OS-${os.numero || os.id.substr(0, 6).toUpperCase()}</strong> | 
-                    ${os.tipo_servico || os.tipo_equipamento || 'Não especificado'}
-                    <br>
-                    <small style="color:#6c757d;">
-                        Solicitante: ${os.solicitante?.nome || 'N/A'} | 
-                        Status: <span style="color:${os.status === 'Finalizada' ? '#28a745' : '#ffc107'}">${os.status}</span>
-                    </small>
+                <div class="os-detalhada" style="background:white;padding:1rem;margin-bottom:0.75rem;border-radius:6px;border-left:3px solid ${statusColor};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <strong style="font-size:1.1rem;">OS-${os.numero || os.id.substr(0, 6).toUpperCase()}</strong>
+                        <span style="background:${statusColor};color:white;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.85rem;">
+                            ${os.status || 'Aberta'}
+                        </span>
+                    </div>
+                    <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">
+                        <strong>Serviço:</strong> ${os.tipo_servico || os.tipo_equipamento || 'Não especificado'} | 
+                        <strong>Solicitante:</strong> ${os.solicitante?.nome || 'N/A'}
+                    </div>
             `;
             
             // Adicionar fotos se existirem
             if (os.fotos && os.fotos.length > 0) {
                 html += `
-                    <div class="os-fotos-grid">
+                    <div class="os-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.5rem;margin-top:0.75rem;">
                         ${os.fotos.slice(0, 4).map(foto => `
                             <div class="os-foto">
-                                <img src="${foto.url}" alt="Foto OS">
-                                ${foto.legenda ? `<div class="os-foto-legenda">${foto.legenda}</div>` : ''}
+                                <img src="${foto.url}" alt="Foto OS" style="width:100%;height:120px;object-fit:cover;border-radius:6px;">
+                                ${foto.legenda ? `<div style="font-size:0.75rem;color:#666;margin-top:0.25rem;">${foto.legenda}</div>` : ''}
                             </div>
                         `).join('')}
                     </div>
@@ -602,14 +919,27 @@
                 </div>
             </div>
             
-            <!-- Top Equipamentos -->
+            <!-- Top Equipamentos e Unidades -->
             <div class="secao">
-                <h3>🏆 TOP 5 EQUIPAMENTOS ATENDIDOS</h3>
-                <ol style="line-height:2;">
-                    ${stats.top5Equipamentos.map(([equip, qtd]) => `
-                        <li><strong>${equip}</strong>: ${qtd} atendimentos</li>
-                    `).join('')}
-                </ol>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                    <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                        <h4 style="margin-top:0;">🏆 TOP 5 EQUIPAMENTOS</h4>
+                        <ol style="line-height:2;">
+                            ${stats.top5Equipamentos.map(([equip, qtd]) => `
+                                <li><strong>${equip}</strong>: ${qtd} atendimento(s)</li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                    
+                    <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                        <h4 style="margin-top:0;">🏢 TOP 5 UNIDADES</h4>
+                        <ol style="line-height:2;">
+                            ${stats.porUnidade.map(unidade => `
+                                <li><strong>${unidade.nome}</strong>: ${unidade.total} OS (${unidade.percentual}%)</li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -966,6 +1296,165 @@ ${new Date().toLocaleString('pt-BR')}`;
         const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailto;
         mostrarSucesso('Cliente de email aberto! Anexe o PDF manualmente.');
+    }
+    
+    /**
+     * Renderizar gráficos com Chart.js
+     */
+    function renderizarGraficos(stats) {
+        // Gráfico de Status
+        const ctxStatus = document.getElementById('graficoStatus');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
+                type: 'pie',
+                data: {
+                    labels: ['Finalizadas', 'Em Andamento', 'Abertas'],
+                    datasets: [{
+                        data: [stats.finalizadas, stats.emAndamento, stats.abertas],
+                        backgroundColor: ['#28a745', '#ffc107', '#007bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico por Dia da Semana
+        const ctxDia = document.getElementById('graficoDiaSemana');
+        if (ctxDia) {
+            const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            const valores = dias.map(d => stats.porDiaSemana[d] || 0);
+            
+            new Chart(ctxDia, {
+                type: 'bar',
+                data: {
+                    labels: dias,
+                    datasets: [{
+                        label: 'Número de OS',
+                        data: valores,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
+    
+    /**
+     * Exportar relatório para Excel
+     */
+    function exportarExcel() {
+        try {
+            mostrarLoading('Gerando Excel...');
+            
+            const stats = relatorioAtual.resultado.stats;
+            const osArray = relatorioAtual.osArray;
+            
+            // Criar workbook
+            const wb = XLSX.utils.book_new();
+            
+            // ABA 1: Resumo Geral
+            const resumoData = [
+                ['RELATÓRIO STIC - 7ª RPM'],
+                ['Período:', `${relatorioAtual.dias} dias`],
+                ['Gerado em:', new Date().toLocaleString('pt-BR')],
+                [],
+                ['INDICADORES'],
+                ['Total de OS', stats.total],
+                ['Finalizadas', stats.finalizadas],
+                ['Em Andamento', stats.emAndamento],
+                ['Abertas', stats.abertas],
+                ['Taxa de Conclusão', `${stats.taxaConclusao}%`],
+                ['Tempo Médio', `${stats.tempoMedio} dias`],
+                [],
+                ['SLA (Meta: ' + stats.sla.meta + ' dias)'],
+                ['Dentro do SLA', stats.sla.dentroSLA],
+                ['Fora do SLA', stats.sla.foraSLA],
+                ['% Cumprimento SLA', `${stats.sla.percentualSLA}%`]
+            ];
+            
+            const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+            XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+            
+            // ABA 2: Ordens de Serviço Detalhadas
+            const osData = [
+                ['Número', 'Status', 'Solicitante', 'Tipo de Serviço', 'Equipamento', 'Data Abertura', 'Data Finalização', 'Tempo (dias)', 'Unidade']
+            ];
+            
+            osArray.forEach(os => {
+                const dataAbertura = os.data_abertura?.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura || '');
+                const dataFinal = os.data_finalizacao?.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao || '');
+                const tempoDias = os.data_finalizacao ? ((dataFinal - dataAbertura) / (1000*60*60*24)).toFixed(1) : '-';
+                
+                osData.push([
+                    os.numero || os.id.substr(0, 8),
+                    os.status || 'Aberta',
+                    os.solicitante?.nome || os.nome_solicitante || 'N/A',
+                    os.tipo_servico || 'N/A',
+                    os.tipo_equipamento || 'N/A',
+                    dataAbertura.toLocaleDateString('pt-BR'),
+                    os.data_finalizacao ? dataFinal.toLocaleDateString('pt-BR') : '-',
+                    tempoDias,
+                    os.unidade || os.batalhao || 'N/A'
+                ]);
+            });
+            
+            const wsOS = XLSX.utils.aoa_to_sheet(osData);
+            XLSX.utils.book_append_sheet(wb, wsOS, 'Ordens de Serviço');
+            
+            // ABA 3: Análise por Unidade
+            if (stats.porUnidade.length > 0) {
+                const unidadeData = [
+                    ['Unidade', 'Total OS', 'Finalizadas', 'Percentual', 'Principais Serviços']
+                ];
+                
+                stats.porUnidade.forEach(u => {
+                    unidadeData.push([
+                        u.nome,
+                        u.total,
+                        u.finalizadas,
+                        `${u.percentual}%`,
+                        u.principaisTipos
+                    ]);
+                });
+                
+                const wsUnidade = XLSX.utils.aoa_to_sheet(unidadeData);
+                XLSX.utils.book_append_sheet(wb, wsUnidade, 'Por Unidade');
+            }
+            
+            // ABA 4: Top Equipamentos
+            const equipData = [['Equipamento', 'Quantidade de OS']];
+            stats.top5Equipamentos.forEach(([eq, qtd]) => {
+                equipData.push([eq, qtd]);
+            });
+            
+            const wsEquip = XLSX.utils.aoa_to_sheet(equipData);
+            XLSX.utils.book_append_sheet(wb, wsEquip, 'Top Equipamentos');
+            
+            // Salvar arquivo
+            const filename = `relatorio-stic-${relatorioAtual.dias}dias-${Date.now()}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            ocultarLoading();
+            mostrarSucesso('Excel gerado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro ao gerar Excel:', error);
+            mostrarErro('Erro ao gerar Excel: ' + error.message);
+        }
     }
     </script>
 </body>
