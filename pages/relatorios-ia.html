@@ -790,7 +790,53 @@
      */
     function renderizarRelatorio(resultado, osArray, dias) {
         const preview = document.getElementById('relatorioPreview');
-        const stats = resultado.stats;
+        
+        // ========== CORRIGIR STATS LOCALMENTE ==========
+        const statsCorrigidos = {
+            total: osArray.length,
+            finalizadas: osArray.filter(os => os.status === 'finalizada').length,
+            emAndamento: osArray.filter(os => 
+                os.status === 'em_andamento' || 
+                os.status === 'em_manutencao' || 
+                os.status === 'aguardando_peca' ||
+                os.status === 'aguardando_aprovacao' ||
+                os.status === 'pausada' ||
+                os.status === 'enviado_bh' ||
+                os.status === 'aguardando_teste' ||
+                os.status === 'testada' ||
+                os.status === 'pronta_retirada'
+            ).length,
+            abertas: osArray.filter(os => os.status === 'aberta' || !os.status).length,
+            canceladas: osArray.filter(os => os.status === 'cancelada').length
+        };
+        
+        // Adicionar percentuais
+        statsCorrigidos.percentualFinalizadas = statsCorrigidos.total > 0 
+            ? Math.round((statsCorrigidos.finalizadas / statsCorrigidos.total) * 100) 
+            : 0;
+        
+        statsCorrigidos.taxaConclusao = statsCorrigidos.percentualFinalizadas;
+        
+        // Calcular tempo médio
+        const osFinaliz = osArray.filter(os => os.status === 'finalizada' && os.data_abertura && os.data_finalizacao);
+        if (osFinaliz.length > 0) {
+            const tempoTotal = osFinaliz.reduce((sum, os) => {
+                const inicio = os.data_abertura.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura);
+                const fim = os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao);
+                const diffDias = (fim - inicio) / (1000 * 60 * 60 * 24);
+                return sum + diffDias;
+            }, 0);
+            statsCorrigidos.tempoMedio = (tempoTotal / osFinaliz.length).toFixed(1);
+        } else {
+            statsCorrigidos.tempoMedio = resultado.stats.tempoMedio || '0';
+        }
+        
+        // Mesclar stats corrigidos com o resultado da IA
+        const stats = {
+            ...resultado.stats,
+            ...statsCorrigidos
+        };
+        
         const insights = resultado.insights || [];
         
         let html = `
@@ -1591,7 +1637,7 @@
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(8);
                     doc.setTextColor(0, 51, 102);
-                    doc.text('📝 HISTÓRICO DE ATENDIMENTO', 24, yPos + 5);
+                    doc.text('HISTORICO DE ATENDIMENTO', 24, yPos + 5);
                     yPos += 9;
                     
                     doc.setFont('helvetica', 'normal');
@@ -1604,13 +1650,13 @@
                     for (const hist of historicoLimitado) {
                         if (yPos > 265) break; // Não ultrapassar página
                         
-                        // Ícone baseado na ação
-                        let icone = '•';
-                        if (hist.acao.includes('Criada')) icone = '✓';
-                        else if (hist.acao.includes('alterado')) icone = '⚙';
-                        else if (hist.acao.includes('Comentário')) icone = '💬';
-                        else if (hist.acao.includes('Finalizada')) icone = '✅';
-                        else if (hist.acao.includes('Fotos')) icone = '📸';
+                        // Ícone baseado na ação (símbolos ASCII que funcionam no PDF)
+                        let icone = '>';
+                        if (hist.acao.includes('Criada')) icone = '+';
+                        else if (hist.acao.includes('alterado')) icone = '>';
+                        else if (hist.acao.includes('Comentário') || hist.acao.includes('Comentario')) icone = '*';
+                        else if (hist.acao.includes('Finalizada')) icone = 'OK';
+                        else if (hist.acao.includes('Fotos')) icone = '#';
                         
                         // Data e ação
                         const dataHist = hist.data ? new Date(hist.data).toLocaleString('pt-BR', {
@@ -1668,7 +1714,7 @@
                         
                         doc.setFont('helvetica', 'bold');
                         doc.setTextColor(100);
-                        doc.text(`⏱ Tempo ${os.status === 'finalizada' ? 'total' : 'decorrido'}: ${tempoTexto}`, 26, yPos);
+                        doc.text(`Tempo ${os.status === 'finalizada' ? 'total' : 'decorrido'}: ${tempoTexto}`, 26, yPos);
                         yPos += 4;
                     }
                 }
@@ -1676,60 +1722,88 @@
                 // ========== FOTOS DA INTERVENÇÃO ==========
                 if (os.fotos && os.fotos.length > 0) {
                     // Verificar espaço
-                    if (yPos > 210) {
+                    if (yPos > 200) {
                         doc.addPage();
                         yPos = 20;
                     }
-                    
-                    // Caixa de fotos
-                    doc.setDrawColor(0, 102, 204);
-                    doc.setLineWidth(0.3);
-                    doc.setFillColor(240, 248, 255);
                     
                     // Título
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(8);
                     doc.setTextColor(0, 51, 102);
-                    doc.text(`📸 FOTOS DA INTERVENÇÃO (${os.fotos.length})`, 24, yPos + 5);
-                    yPos += 10;
+                    doc.text(`FOTOS DA INTERVENCAO (${os.fotos.length})`, 24, yPos);
+                    yPos += 6;
                     
                     try {
-                        // Mostrar até 2 fotos lado a lado
-                        const fotosParaMostrar = os.fotos.slice(0, 2);
-                        const fotoWidth = 75;
-                        const fotoHeight = 50;
+                        // Layout: 1 foto grande + 3 pequenas
+                        const fotosParaMostrar = os.fotos.slice(0, 4);
                         
-                        for (let j = 0; j < fotosParaMostrar.length; j++) {
-                            const foto = fotosParaMostrar[j];
-                            if (foto.url || foto.thumbnail) {
+                        if (fotosParaMostrar.length > 0) {
+                            // FOTO 1: GRANDE (esquerda)
+                            const foto1 = fotosParaMostrar[0];
+                            if (foto1.url || foto1.thumbnail) {
                                 try {
-                                    const xPos = 24 + (j * (fotoWidth + 5));
+                                    // Foto grande
+                                    const larguraGrande = 85;
+                                    const alturaGrande = 60;
                                     
-                                    // Adicionar imagem
                                     doc.addImage(
-                                        foto.thumbnail || foto.url, 
-                                        'JPEG', 
-                                        xPos, 
-                                        yPos, 
-                                        fotoWidth, 
-                                        fotoHeight
+                                        foto1.thumbnail || foto1.url,
+                                        'JPEG',
+                                        24,
+                                        yPos,
+                                        larguraGrande,
+                                        alturaGrande
                                     );
                                     
-                                    // Descrição da foto
-                                    if (foto.descricao) {
+                                    // Descrição
+                                    if (foto1.descricao) {
                                         doc.setFont('helvetica', 'normal');
                                         doc.setFontSize(7);
                                         doc.setTextColor(60);
-                                        const descFoto = doc.splitTextToSize(foto.descricao, fotoWidth - 2);
-                                        doc.text(descFoto.slice(0, 2), xPos + 1, yPos + fotoHeight + 3);
+                                        const descFoto = doc.splitTextToSize(foto1.descricao, larguraGrande - 2);
+                                        doc.text(descFoto.slice(0, 1), 25, yPos + alturaGrande + 3);
                                     }
                                 } catch (imgErr) {
-                                    console.warn('Erro ao adicionar foto:', imgErr);
+                                    console.warn('Erro ao adicionar foto 1:', imgErr);
                                 }
                             }
+                            
+                            // FOTOS 2, 3, 4: PEQUENAS (direita, empilhadas)
+                            const larguraPequena = 60;
+                            const alturaPequena = 18;
+                            const espacamento = 2;
+                            
+                            for (let j = 1; j < Math.min(4, fotosParaMostrar.length); j++) {
+                                const foto = fotosParaMostrar[j];
+                                if (foto.url || foto.thumbnail) {
+                                    try {
+                                        const yPosFoto = yPos + ((j - 1) * (alturaPequena + espacamento));
+                                        
+                                        doc.addImage(
+                                            foto.thumbnail || foto.url,
+                                            'JPEG',
+                                            113,
+                                            yPosFoto,
+                                            larguraPequena,
+                                            alturaPequena
+                                        );
+                                        
+                                        // Descrição (opcional, sem quebra de linha)
+                                        if (foto.descricao) {
+                                            doc.setFont('helvetica', 'normal');
+                                            doc.setFontSize(6);
+                                            doc.setTextColor(80);
+                                            doc.text(foto.descricao.substring(0, 40), 114, yPosFoto + alturaPequena + 2);
+                                        }
+                                    } catch (imgErr) {
+                                        console.warn(`Erro ao adicionar foto ${j + 1}:`, imgErr);
+                                    }
+                                }
+                            }
+                            
+                            yPos += Math.max(60, (Math.min(3, fotosParaMostrar.length - 1) * (alturaPequena + espacamento))) + 8;
                         }
-                        
-                        yPos += fotoHeight + 10;
                         
                     } catch (err) {
                         console.warn('Erro ao processar fotos:', err);
@@ -2024,7 +2098,6 @@ Atenciosamente,
 ${nome}
 STIC - 7ª RPM/PMMG
 Divinópolis/MG
-Tel: (37) 3301-0116
 
 ${new Date().toLocaleString('pt-BR')}`;
         

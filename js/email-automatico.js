@@ -15,7 +15,7 @@
         PUBLIC_KEY: 'LDlUqkqdk_ZNRLN22',
         
         CONTATO_STIC: {
-            telefone: '(37) 3301-0116',
+            // telefone removido - não exibir em PDFs
             email: 'stic7rpmmg@gmail.com'
         },
         
@@ -220,7 +220,6 @@ ${linkAcompanhamento}
                 `.trim(),
                 observacoes: `
 Dúvidas entre em contato com a STIC:
-📞 Telefone: ${CONFIG.CONTATO_STIC.telefone}
 📧 Email: ${CONFIG.CONTATO_STIC.email}
                 `.trim()
             };
@@ -277,7 +276,6 @@ ${linkAssinatura}
                 `.trim(),
                 observacoes: `
 Dúvidas entre em contato com a STIC:
-📞 Telefone: ${CONFIG.CONTATO_STIC.telefone}
 📧 Email: ${CONFIG.CONTATO_STIC.email}
                 `.trim()
             };
@@ -327,7 +325,6 @@ Data/Hora: ${formatarDataHora(new Date())}
                 `.trim(),
                 observacoes: `
 Dúvidas entre em contato com a STIC:
-📞 Telefone: ${CONFIG.CONTATO_STIC.telefone}
 📧 Email: ${CONFIG.CONTATO_STIC.email}
                 `.trim()
             };
@@ -383,7 +380,6 @@ ${linkAssinatura}
                 `.trim(),
                 observacoes: `
 Dúvidas entre em contato com a STIC:
-📞 Telefone: ${CONFIG.CONTATO_STIC.telefone}
 📧 Email: ${CONFIG.CONTATO_STIC.email}
                 `.trim()
             };
