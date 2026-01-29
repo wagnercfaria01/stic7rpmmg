@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Recorrentes - STIC</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #003366, #0066cc);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,51,102,0.3);
+        }
+        
+        .header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2em;
+        }
+        
+        .btn-novo {
+            background: #28a745;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+            transition: all 0.3s;
+        }
+        
+        .btn-novo:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .lista {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 5px solid #003366;
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateX(5px);
+        }
+        
+        .card.inativa {
+            opacity: 0.6;
+            border-left-color: #999;
+        }
+        
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .card-top h3 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.3em;
+        }
+        
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .badge-ativa { background: #d4edda; color: #155724; }
+        .badge-inativa { background: #f8d7da; color: #721c24; }
+        
+        .card-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info-item {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .dias {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+        
+        .dia {
+            padding: 0.2rem 0.5rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .card-acoes {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-editar { background: #ffc107; color: #000; }
+        .btn-toggle { background: #17a2b8; color: white; }
+        .btn-excluir { background: #dc3545; color: white; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #003366;
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-label:hover {
+            background: #f0f8ff;
+            border-color: #003366;
+        }
+        
+        .modal-acoes {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .btn-cancelar {
+            background: #6c757d;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-salvar {
+            background: #28a745;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .card-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 OS Recorrentes</h1>
+            <p>Configure ordens de serviço que se repetem automaticamente</p>
+        </div>
+
+        <button class="btn-novo" onclick="novaOS()">➕ Nova OS Recorrente</button>
+
+        <div id="lista" class="lista">
+            <div class="empty">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="if(event.target===this) fecharModal()">
+        <div class="modal-content">
+            <h2 id="modalTitulo">Nova OS Recorrente</h2>
+            <form id="form" onsubmit="salvar(event)">
+                <input type="hidden" id="editId">
+                
+                <div class="form-group">
+                    <label>Tipo de Serviço *</label>
+                    <select id="tipo" required>
+                        <option value="">Selecione...</option>
+                        <option value="notebook">Notebook</option>
+                        <option value="impressora">Impressora</option>
+                        <option value="desktop">Desktop</option>
+                        <option value="servidor">Servidor</option>
+                        <option value="rede">Rede</option>
+                        <option value="backup_restauracao">Backup/Restauração</option>
+                        <option value="manutencao_preventiva">Manutenção Preventiva</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição *</label>
+                    <textarea id="desc" rows="2" required placeholder="Ex: Atendimento diário SOU/COPOM"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Unidade *</label>
+                    <input type="text" id="unidade" required placeholder="Ex: SOU (COPOM)">
+                </div>
+
+                <div class="form-group">
+                    <label>Dias da Semana *</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="1"> Segunda
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="2"> Terça
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="3"> Quarta
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="4"> Quinta
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="5"> Sexta
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="6"> Sábado
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Horário *</label>
+                    <input type="time" id="horario" required value="08:30">
+                    <small style="color:#666;margin-top:0.5rem;display:block;">A OS será criada neste horário</small>
+                </div>
+
+                <div class="modal-acoes">
+                    <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                    <button type="submit" class="btn-salvar">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/os-recorrentes.js"></script>
+
+    <script>
+        let editId = null;
+
+        // Carregar lista
+        async function carregar() {
+            const lista = document.getElementById('lista');
+            try {
+                const recs = await carregarOSRecorrentes();
+                
+                if (recs.length === 0) {
+                    lista.innerHTML = '<div class="empty">📅 Nenhuma OS recorrente configurada</div>';
+                    return;
+                }
+                
+                lista.innerHTML = '';
+                recs.forEach(r => {
+                    const dias = {0:'Dom',1:'Seg',2:'Ter',3:'Qua',4:'Qui',5:'Sex',6:'Sáb'};
+                    const diasHtml = r.dias_semana.sort((a,b)=>a-b).map(x => `<span class="dia">${dias[x]}</span>`).join('');
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card' + (r.ativa ? '' : ' inativa');
+                    card.innerHTML = `
+                        <div class="card-top">
+                            <h3>${r.tipo_servico} <span class="badge ${r.ativa?'badge-ativa':'badge-inativa'}">${r.ativa?'✅ Ativa':'⏸️ Pausada'}</span></h3>
+                        </div>
+                        <p>${r.descricao}</p>
+                        <div class="card-info">
+                            <div class="info-item"><strong>🏢</strong> ${r.unidade}</div>
+                            <div class="info-item"><strong>⏰</strong> ${r.horario}</div>
+                            <div class="info-item"><strong>📅</strong> <div class="dias">${diasHtml}</div></div>
+                        </div>
+                        <div class="card-acoes">
+                            <button class="btn btn-editar" onclick="editar('${r.id}')">✏️ Editar</button>
+                            <button class="btn btn-toggle" onclick="toggle('${r.id}',${!r.ativa})">${r.ativa?'⏸️ Pausar':'▶️ Ativar'}</button>
+                            <button class="btn btn-excluir" onclick="excluir('${r.id}')">🗑️</button>
+                        </div>
+                    `;
+                    lista.appendChild(card);
+                });
+            } catch(e) {
+                console.error(e);
+                lista.innerHTML = '<div class="empty">❌ Erro ao carregar</div>';
+            }
+        }
+
+        // Nova OS
+        function novaOS() {
+            editId = null;
+            document.getElementById('modalTitulo').textContent = 'Nova OS Recorrente';
+            document.getElementById('form').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('horario').value = '08:30';
+            document.querySelectorAll('.checkbox-label input').forEach(cb => cb.checked = false);
+            document.getElementById('modal').classList.add('show');
+        }
+
+        // Fechar modal
+        function fecharModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        // Salvar
+        async function salvar(e) {
+            e.preventDefault();
+            
+            const dias = Array.from(document.querySelectorAll('.checkbox-label input:checked')).map(x => parseInt(x.value));
+            if (dias.length === 0) {
+                alert('Selecione pelo menos um dia!');
+                return;
+            }
+            
+            const dados = {
+                id: document.getElementById('editId').value || null,
+                tipo_servico: document.getElementById('tipo').value,
+                descricao: document.getElementById('desc').value,
+                unidade: document.getElementById('unidade').value,
+                dias_semana: dias,
+                horario: document.getElementById('horario').value
+            };
+            
+            try {
+                await salvarOSRecorrente(dados);
+                alert('✅ ' + (dados.id ? 'Atualizada!' : 'Criada!'));
+                fecharModal();
+                carregar();
+            } catch(e) {
+                alert('❌ Erro: ' + e.message);
+            }
+        }
+
+        // Editar
+        async function editar(id) {
+            try {
+                const recs = await carregarOSRecorrentes();
+                const r = recs.find(x => x.id === id);
+                
+                if (!r) return;
+                
+                editId = id;
+                document.getElementById('modalTitulo').textContent = 'Editar OS Recorrente';
+                document.getElementById('editId').value = id;
+                document.getElementById('tipo').value = r.tipo_servico;
+                document.getElementById('desc').value = r.descricao;
+                document.getElementById('unidade').value = r.unidade;
+                document.getElementById('horario').value = r.horario;
+                
+                document.querySelectorAll('.checkbox-label input').forEach(cb => {
+                    cb.checked = r.dias_semana.includes(parseInt(cb.value));
+                });
+                
+                document.getElementById('modal').classList.add('show');
+            } catch(e) {
+                alert('❌ Erro: ' + e.message);
+            }
+        }
+
+        // Toggle
+        async function toggle(id, novo) {
+            if (confirm(`${novo?'Ativar':'Pausar'} esta OS?`)) {
+                try {
+                    await toggleOSRecorrente(id, novo);
+                    carregar();
+                } catch(e) {
+                    alert('❌ Erro: ' + e.message);
+                }
+            }
+        }
+
+        // Excluir
+        async function excluir(id) {
+            if (confirm('⚠️ Excluir esta OS recorrente?')) {
+                try {
+                    await excluirOSRecorrente(id);
+                    alert('✅ Excluída!');
+                    carregar();
+                } catch(e) {
+                    alert('❌ Erro: ' + e.message);
+                }
+            }
+        }
+
+        // Carregar ao iniciar
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = '../login.html';
+            } else {
+                carregar();
+            }
+        });
+    </script>
+</body>
+</html>
