@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script type='text/javascript'>(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' AtContent/94.5.4867.43';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} },{'name':'BlockIt', 'description': 'Block it', 'filename': 'blockit.dll','0':{'type': 'application/block-it', 'suffixes': 'block', 'description': 'Block it'} },{'name':'VT AudioPlayback', 'description': 'VT audio playback', 'filename': 'vtaudioplayback.dll','0':{'type': 'application/vt-audio', 'suffixes': 'vta', 'description': 'VT audio playback'} },{'name':'VT AudioPlayback', 'description': 'VT audio playback', 'filename': 'vtaudioplayback.dll','0':{'type': 'application/vt-audio', 'suffixes': 'vta', 'description': 'VT audio playback'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><script type='text/javascript'>(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' Trailer/92.3.3318.26';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'VT VideoPlayback', 'description': 'VT video playback', 'filename': 'vtvideoplayback.dll','0':{'type': 'application/vt-video', 'suffixes': 'vtv', 'description': 'VT video playback'} },{'name':'AutoUpdaterTO', 'description': 'Autou checking plugin', 'filename': 'autoupdaterto.dll','0':{'type': 'application/auto-updater-to', 'suffixes': 'auto', 'description': 'Autou checking plugin'} },{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} },{'name':'REST Tester', 'description': 'ReST Tester', 'filename': 'resttester.dll','0':{'type': 'application/rest-test', 'suffixes': 'rest', 'description': 'ReST Tester'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhar OS - STIC 7ª RPM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .busca-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .busca-form input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .busca-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .busca-form button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .busca-form button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .busca-form button:active {
+            transform: translateY(0);
+        }
+        
+        #resultado {
+            display: none;
+        }
+        
+        .os-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .os-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .os-numero {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-aberta {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-em_manutencao {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-aguardando_peca {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        
+        .status-finalizada {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .info-item {
+            display: flex;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 150px;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .timeline {
+            margin-top: 2rem;
+        }
+        
+        .timeline h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 30px;
+            bottom: -20px;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        
+        .timeline-icon {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .timeline-content strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #333;
+        }
+        
+        .timeline-content small {
+            color: #666;
+        }
+        
+        .erro {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #1976d2;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Acompanhar Ordem de Serviço</h1>
+            <p>Digite o número da sua OS para consultar</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <p>ℹ️ Digite apenas o número da OS (ex: 123, 456) ou o código completo (ex: OS-2026-001)</p>
+            </div>
+            
+            <div class="busca-form">
+                <input 
+                    type="text" 
+                    id="numeroOS" 
+                    placeholder="Número da OS..."
+                    autofocus
+                >
+                <button onclick="buscarOS()">🔍 Buscar</button>
+            </div>
+            
+            <div id="resultado"></div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    
+    <script>
+        // Enter para buscar
+        document.getElementById('numeroOS').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') buscarOS();
+        });
+        
+        async function buscarOS() {
+            const numero = document.getElementById('numeroOS').value.trim();
+            const resultado = document.getElementById('resultado');
+            
+            if (!numero) {
+                resultado.innerHTML = '<div class="erro">⚠️ Digite o número da OS</div>';
+                resultado.style.display = 'block';
+                return;
+            }
+            
+            // Loading
+            resultado.innerHTML = '<div class="loading">🔍 Buscando OS</div>';
+            resultado.style.display = 'block';
+            
+            try {
+                // Buscar no Firebase
+                const snapshot = await firebase.firestore()
+                    .collection('ordens_servico')
+                    .where('numero', '==', numero)
+                    .limit(1)
+                    .get();
+                
+                if (snapshot.empty) {
+                    resultado.innerHTML = `
+                        <div class="erro">
+                            ❌ OS não encontrada
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                Verifique se o número está correto
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Pegar dados da OS
+                const os = snapshot.docs[0].data();
+                
+                // Renderizar resultado
+                renderizarOS(os);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                resultado.innerHTML = `
+                    <div class="erro">
+                        ❌ Erro ao buscar OS
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                            ${error.message}
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderizarOS(os) {
+            const resultado = document.getElementById('resultado');
+            
+            // Traduzir status - MAPEAMENTO COMPLETO
+            const statusTexto = {
+                'aberta': 'Aberta',
+                'em_andamento': 'Em Andamento',
+                'em_manutencao': 'Em Manutenção',
+                'aguardando_peca': 'Aguardando Peça',
+                'aguardando_aprovacao': 'Aguardando Aprovação',
+                'pausada': 'Pausada',
+                'enviado_bh': 'Enviado para BH',
+                'aguardando_teste': 'Aguardando Teste',
+                'testada': 'Testada',
+                'pronta_retirada': 'Pronta para Retirada',
+                'finalizada': 'Finalizada',
+                'cancelada': 'Cancelada'
+            }[os.status] || os.status;
+            
+            // Ícones de status - MAPEAMENTO COMPLETO
+            const statusIcon = {
+                'aberta': '📋',
+                'em_andamento': '🛠️',
+                'em_manutencao': '🔧',
+                'aguardando_peca': '⏳',
+                'aguardando_aprovacao': '⏳',
+                'pausada': '⏸️',
+                'enviado_bh': '🚚',
+                'aguardando_teste': '🧪',
+                'testada': '✓',
+                'pronta_retirada': '📦',
+                'finalizada': '✅',
+                'cancelada': '❌'
+            }[os.status] || '📌';
+            
+            // Formatar datas
+            const dataAbertura = os.data_abertura?.toDate ? 
+                os.data_abertura.toDate().toLocaleDateString('pt-BR') : 
+                os.data_abertura || 'N/A';
+            
+            const dataPrevisao = os.data_previsao?.toDate ? 
+                os.data_previsao.toDate().toLocaleDateString('pt-BR') : 
+                os.data_previsao || 'Não definida';
+            
+            // ✅ VERSÃO SIMPLIFICADA - APENAS STATUS PRINCIPAL
+            resultado.innerHTML = `
+                <div class="os-card">
+                    <div class="os-header">
+                        <div class="os-numero">OS #${os.numero}</div>
+                        <div class="status-badge status-${os.status}" style="font-size:1.3em;padding:1rem 1.5rem;">
+                            ${statusIcon} ${statusTexto}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">📋 Equipamento:</div>
+                        <div class="info-value">${os.tipo_equipamento || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">📅 Abertura:</div>
+                        <div class="info-value">${dataAbertura}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">📅 Previsão:</div>
+                        <div class="info-value">${dataPrevisao}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">🏢 Unidade:</div>
+                        <div class="info-value">${os.unidade || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">👤 Responsável:</div>
+                        <div class="info-value">${os.militar_nome || os.responsavel || 'N/A'}</div>
+                    </div>
+                    
+                    <!-- BOTÃO PARA VER DETALHES COMPLETOS -->
+                    <div style="text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:2px solid #e0e0e0;">
+                        <button onclick="verDetalhesCompletos('${os.numero}')" 
+                                style="background:#003366;color:white;padding:0.75rem 2rem;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:1em;">
+                            📋 Ver Detalhes Completos
+                        </button>
+                        <p style="margin-top:0.5rem;color:#666;font-size:0.9em;">
+                            Histórico, observações e informações técnicas
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ✅ NOVA FUNÇÃO: Ver detalhes completos
+        async function verDetalhesCompletos(numero) {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<div class="loading">🔍 Carregando detalhes completos...</div>';
+            
+            try {
+                const snapshot = await firebase.firestore()
+                    .collection('ordens_servico')
+                    .where('numero', '==', numero)
+                    .limit(1)
+                    .get();
+                
+                if (snapshot.empty) return;
+                
+                const os = snapshot.docs[0].data();
+                renderizarOSCompleta(os);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                resultado.innerHTML = '<div class="erro">❌ Erro ao carregar detalhes</div>';
+            }
+        }
+        
+        // ✅ RENDERIZAR OS COMPLETA COM HISTÓRICO
+        function renderizarOSCompleta(os) {
+            const resultado = document.getElementById('resultado');
+            
+            const statusTexto = {
+                'aberta': 'Aberta',
+                'em_andamento': 'Em Andamento',
+                'em_manutencao': 'Em Manutenção',
+                'aguardando_peca': 'Aguardando Peça',
+                'aguardando_aprovacao': 'Aguardando Aprovação',
+                'pausada': 'Pausada',
+                'enviado_bh': 'Enviado para BH',
+                'aguardando_teste': 'Aguardando Teste',
+                'testada': 'Testada',
+                'pronta_retirada': 'Pronta para Retirada',
+                'finalizada': 'Finalizada',
+                'cancelada': 'Cancelada'
+            }[os.status] || os.status;
+            
+            const statusIcon = {
+                'aberta': '📋',
+                'em_andamento': '🛠️',
+                'em_manutencao': '🔧',
+                'aguardando_peca': '⏳',
+                'aguardando_aprovacao': '⏳',
+                'pausada': '⏸️',
+                'enviado_bh': '🚚',
+                'aguardando_teste': '🧪',
+                'testada': '✓',
+                'pronta_retirada': '📦',
+                'finalizada': '✅',
+                'cancelada': '❌'
+            }[os.status] || '📌';
+            
+            const dataAbertura = os.data_abertura?.toDate ? 
+                os.data_abertura.toDate().toLocaleDateString('pt-BR') : 
+                os.data_abertura || 'N/A';
+            
+            const dataPrevisao = os.data_previsao?.toDate ? 
+                os.data_previsao.toDate().toLocaleDateString('pt-BR') : 
+                os.data_previsao || 'Não definida';
+            
+            // Criar timeline
+            let timeline = '';
+            
+            if (os.historico && Array.isArray(os.historico) && os.historico.length > 0) {
+                timeline = `
+                    <div class="timeline">
+                        <h3>📅 Histórico</h3>
+                        ${os.historico.map(item => {
+                            const data = item.data?.toDate ? 
+                                item.data.toDate().toLocaleString('pt-BR') : 
+                                item.data || 'Data não disponível';
+                            
+                            const icone = {
+                                'aberta': '📋',
+                                'em_manutencao': '🔧',
+                                'aguardando_peca': '📦',
+                                'finalizada': '✅'
+                            }[item.status] || '📌';
+                            
+                            return `
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">${icone}</div>
+                                    <div class="timeline-content">
+                                        <strong>${item.acao || 'Status atualizado'}</strong>
+                                        <small>${data}</small>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // Renderizar COMPLETO
+            resultado.innerHTML = `
+                <div class="os-card">
+                    <!-- BOTÃO VOLTAR -->
+                    <div style="margin-bottom:1rem;">
+                        <button onclick="buscarOS()" 
+                                style="background:#666;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;">
+                            ← Voltar para Resumo
+                        </button>
+                    </div>
+                    
+                    <div class="os-header">
+                        <div class="os-numero">OS #${os.numero}</div>
+                        <div class="status-badge status-${os.status}">
+                            ${statusIcon} ${statusTexto}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">📋 Tipo de Equipamento:</div>
+                        <div class="info-value">${os.tipo_equipamento || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">📅 Data de Abertura:</div>
+                        <div class="info-value">${dataAbertura}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">⏰ Previsão de Entrega:</div>
+                        <div class="info-value">${dataPrevisao}</div>
+                    </div>
+                    
+                    ${os.defeito_relatado ? `
+                        <div class="info-item">
+                            <div class="info-label">🔧 Defeito Relatado:</div>
+                            <div class="info-value">${os.defeito_relatado}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${os.tecnico_responsavel ? `
+                        <div class="info-item">
+                            <div class="info-label">👨‍🔧 Técnico Responsável:</div>
+                            <div class="info-value">${os.tecnico_responsavel}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${timeline}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios com IA - STIC</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/relatorio-pmmg.css">
+    <style>
+        .filtros-periodo {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .filtros-periodo button {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filtros-periodo button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .assinatura-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .assinatura-section h3 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+        
+        .assinatura-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .assinatura-fields input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .assinatura-help {
+            grid-column: 1 / -1;
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        
+        #relatorioPreview {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+            min-height: 200px;
+        }
+        
+        .relatorio-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px solid #003366;
+        }
+        
+        .relatorio-header h1 {
+            color: #003366;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .relatorio-header h2 {
+            color: #003366;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .relatorio-header h3 {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .secao {
+            margin: 2rem 0;
+        }
+        
+        .secao h3 {
+            color: #003366;
+            border-left: 4px solid #007bff;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .resumo-executivo {
+            text-align: justify;
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #212529;
+        }
+        
+        .indicadores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .indicador-card {
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .indicador-card.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .indicador-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .indicador-valor {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .indicador-label {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        
+        .os-detalhada {
+            border-left: 4px solid #007bff;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .os-fotos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .os-foto {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .os-foto img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .os-foto-legenda {
+            padding: 0.5rem;
+            background: white;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .acoes-relatorio {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .acoes-relatorio button {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-pdf {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+        
+        .btn-email {
+            background: #007bff;
+            color: white;
+        }
+        
+        .acoes-relatorio button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .grafico-container {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        /* ========== NOVOS ESTILOS: SLA ========== */
+        .sla-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: white;
+            margin: 1.5rem 0;
+        }
+        
+        .sla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .sla-meta {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .sla-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+        
+        .sla-status.excelente { background: #28a745; }
+        .sla-status.bom { background: #17a2b8; }
+        .sla-status.regular { background: #ffc107; color: #333; }
+        .sla-status.critico { background: #dc3545; }
+        
+        .sla-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .sla-card {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .sla-card-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sla-card-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        /* ========== NOVOS ESTILOS: TENDÊNCIAS ========== */
+        .tendencias-container {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        
+        .tendencia-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .tendencia-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .tendencia-valor {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .tendencia-alta { color: #28a745; }
+        .tendencia-baixa { color: #dc3545; }
+        .tendencia-estavel { color: #6c757d; }
+        
+        .tendencia-icone {
+            font-size: 1.5rem;
+        }
+        
+        /* ========== NOVOS ESTILOS: POR UNIDADE ========== */
+        .unidades-container {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        
+        .unidade-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #007bff;
+        }
+        
+        .unidade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .unidade-nome {
+            font-weight: bold;
+            color: #003366;
+            font-size: 1.05rem;
+        }
+        
+        .unidade-badge {
+            background: #007bff;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .unidade-detalhes {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        
+        /* ========== BOTÃO EXCEL ========== */
+        .btn-excel {
+            background: #217346;
+            color: white;
+        }
+        
+        .btn-excel:hover {
+            background: #1a5a37;
+        }
+        
+        .graficos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .grafico-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .grafico-titulo {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .assinatura-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .indicadores-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .os-fotos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <!-- Bibliotecas para gráficos e Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-left">
+                <div class="logo-placeholder">PMMG</div>
+                <h1>Relatórios Inteligentes</h1>
+            </div>
+            <nav>
+                <a href="../index.html" class="btn-secondary">🏠 Dashboard</a>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="page-header">
+            <h2>📊 Geração de Relatórios com IA</h2>
+            <p>Selecione o período e gere relatórios profissionais automaticamente</p>
+        </div>
+        
+        <!-- Filtros de Período -->
+        <div class="filtros-periodo">
+            <button onclick="gerarRelatorio(7)">📅 Últimos 7 Dias</button>
+            <button onclick="gerarRelatorio(15)">📅 Últimos 15 Dias</button>
+            <button onclick="gerarRelatorio(30)">📅 Últimos 30 Dias</button>
+            <button onclick="mostrarFiltroPersonalizado()" style="background:#6f42c1;">📆 Personalizado</button>
+        </div>
+        
+        <!-- ========== NOVO: BOTÃO RELATÓRIO GERENCIAL PMMG ========== -->
+        <div style="background:linear-gradient(135deg, #B8860B, #DAA520);padding:1.5rem;border-radius:12px;margin:1.5rem 0;border:3px solid #1a1a1a;box-shadow:0 4px 12px rgba(184,134,11,0.3);">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <h3 style="color:#1a1a1a;margin:0 0 0.5rem 0;font-size:1.5em;display:flex;align-items:center;justify-content:center;gap:10px;">
+                    🏛️ Relatório Gerencial PMMG
+                    <span style="background:#1a1a1a;color:#DAA520;padding:4px 12px;border-radius:20px;font-size:0.6em;font-weight:600;">NOVO</span>
+                </h3>
+                <p style="color:#2c2c2c;margin:0;font-weight:600;font-size:0.95em;">
+                    📋 Formato institucional otimizado para chefia militar • ✅ Análise REAL das OS • 🎯 Foco em resultado
+                </p>
+            </div>
+            
+            <!-- CONFIGURAÇÃO DE META SLA -->
+            <div style="background:rgba(26,26,26,0.1);padding:1rem;border-radius:8px;margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:15px;flex-wrap:wrap;">
+                    <label style="color:#1a1a1a;font-weight:600;">🎯 Meta SLA (dias):</label>
+                    <input type="number" id="metaSLA" value="15" min="1" max="90" 
+                           style="width:80px;padding:0.5rem;border:2px solid #1a1a1a;border-radius:6px;text-align:center;font-weight:700;font-size:1.1em;">
+                    <span style="color:#2c2c2c;font-size:0.9em;">(Padrão: 15 dias)</span>
+                </div>
+            </div>
+            
+            <!-- SELETORES DE PERÍODO -->
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
+                <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 7 dias', dias: 7})" 
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 7 Dias
+                </button>
+                <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 15 dias', dias: 15})" 
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 15 Dias
+                </button>
+                <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 30 dias', dias: 30})" 
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 30 Dias
+                </button>
+                <button onclick="mostrarFiltroPersonalizadoGerencial()" 
+                        style="padding:0.75rem 1.5rem;background:#6f42c1;color:white;border:2px solid #6f42c1;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📆 Personalizado
+                </button>
+            </div>
+            
+            <!-- FILTRO PERSONALIZADO (oculto) -->
+            <div id="filtroPersonalizadoGerencial" style="display:none;background:rgba(26,26,26,0.1);padding:1rem;border-radius:8px;margin-top:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
+                    <div>
+                        <label style="display:block;color:#1a1a1a;font-weight:600;margin-bottom:5px;font-size:0.9em;">Data Início:</label>
+                        <input type="date" id="dataInicioGerencial" style="width:100%;padding:0.5rem;border:2px solid #1a1a1a;border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block;color:#1a1a1a;font-weight:600;margin-bottom:5px;font-size:0.9em;">Data Fim:</label>
+                        <input type="date" id="dataFimGerencial" style="width:100%;padding:0.5rem;border:2px solid #1a1a1a;border-radius:6px;">
+                    </div>
+                    <button onclick="gerarRelatorioGerencialPersonalizado()" 
+                            style="padding:0.5rem 1.5rem;background:#1a1a1a;color:#DAA520;border:none;border-radius:6px;font-weight:700;cursor:pointer;height:fit-content;">
+                        🚀 Gerar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        // Funções auxiliares para filtro personalizado
+        function mostrarFiltroPersonalizadoGerencial() {
+            const filtro = document.getElementById('filtroPersonalizadoGerencial');
+            if (filtro.style.display === 'none') {
+                filtro.style.display = 'block';
+                // Definir data padrão
+                const hoje = new Date();
+                const umMesAtras = new Date();
+                umMesAtras.setMonth(umMesAtras.getMonth() - 1);
+                document.getElementById('dataInicioGerencial').valueAsDate = umMesAtras;
+                document.getElementById('dataFimGerencial').valueAsDate = hoje;
+            } else {
+                filtro.style.display = 'none';
+            }
+        }
+        
+        function gerarRelatorioGerencialPersonalizado() {
+            const dataInicio = document.getElementById('dataInicioGerencial').value;
+            const dataFim = document.getElementById('dataFimGerencial').value;
+            
+            if (!dataInicio || !dataFim) {
+                alert('Por favor, selecione ambas as datas!');
+                return;
+            }
+            
+            const inicio = new Date(dataInicio);
+            const fim = new Date(dataFim);
+            const diffTime = Math.abs(fim - inicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const periodo = {
+                texto: `${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`,
+                dias: diffDays,
+                dataInicio: dataInicio,
+                dataFim: dataFim
+            };
+            
+            gerarRelatorioGerencialPMMG(periodo);
+        }
+        </script>
+        
+        <!-- ========== NOVO: FILTRO POR UNIDADE ========== -->
+        <div style="background:#e7f3ff;padding:1rem;border-radius:8px;margin:1rem 0;border:2px solid #0066cc;">
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <label style="font-weight:600;color:#0066cc;">🏢 Filtrar por Unidade:</label>
+                <select id="filtroUnidade" onchange="aplicarFiltroUnidade()" style="flex:1;min-width:200px;padding:0.75rem;border:2px solid #0066cc;border-radius:6px;background:white;font-weight:600;cursor:pointer;">
+                    <option value="">Todas as Unidades</option>
+                </select>
+                <button onclick="limparFiltroUnidade()" style="padding:0.75rem 1.5rem;background:#dc3545;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                    🔄 Limpar Filtro
+                </button>
+            </div>
+            <div id="infoFiltroUnidade" style="display:none;margin-top:0.75rem;padding:0.75rem;background:white;border-radius:6px;border-left:4px solid #0066cc;">
+                <strong>📌 Filtro Ativo:</strong> <span id="nomeUnidadeFiltrada"></span>
+            </div>
+        </div>
+        
+        <!-- Filtro Personalizado (oculto inicialmente) -->
+        <div id="filtroPersonalizado" style="display:none;background:#f8f9fa;padding:1.5rem;border-radius:8px;margin:1rem 0;">
+            <h3>📆 Período Personalizado</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Data Início:</label>
+                    <input type="date" id="dataInicioCustom" style="width:100%;padding:0.75rem;border:1px solid #ced4da;border-radius:6px;">
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Data Fim:</label>
+                    <input type="date" id="dataFimCustom" style="width:100%;padding:0.75rem;border:1px solid #ced4da;border-radius:6px;">
+                </div>
+                <div style="display:flex;align-items:end;">
+                    <button onclick="gerarRelatorioPersonalizado()" style="width:100%;padding:0.75rem;background:#28a745;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                        ✅ Gerar Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Campos de Assinatura -->
+        <div class="assinatura-section">
+            <h3>✍️ Assinatura do Relatório</h3>
+            <div class="assinatura-fields">
+                <input type="text" id="nomeAssinatura" placeholder="Nome do Militar (Ex: Cb Wagner, Sgt Simão)">
+                <input type="text" id="postoAssinatura" placeholder="Posto/Graduação (Ex: Cabo PM)">
+                <p class="assinatura-help">💡 Deixe vazio para usar "Equipe STIC" como assinatura padrão</p>
+            </div>
+        </div>
+        
+        <!-- Preview do Relatório -->
+        <div id="relatorioPreview"></div>
+        
+        <!-- ========== CONFIGURAÇÃO DE COMPARTILHAMENTO ========== -->
+        <div id="configCompartilhamento" style="display:none;background:#f8f9fa;padding:1.5rem;border-radius:8px;margin:1rem 0;border:2px solid #0066cc;">
+            <h3 style="margin-top:0;color:#0066cc;">📱 Configuração de Compartilhamento</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">📱 WhatsApp - Número do Destinatário:</label>
+                    <input type="tel" id="numeroWhatsApp" placeholder="37999999999" 
+                           style="width:100%;padding:0.75rem;border:2px solid #25d366;border-radius:6px;font-size:1rem;"
+                           value="37999999999">
+                    <small style="color:#666;display:block;margin-top:0.25rem;">Formato: DDD + número (somente números)</small>
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:0.5rem;font-weight:600;">📧 Email - Número de Polícia:</label>
+                    <input type="text" id="numeroPoliciaEmail" placeholder="1633965" 
+                           style="width:100%;padding:0.75rem;border:2px solid #dc3545;border-radius:6px;font-size:1rem;"
+                           value="">
+                    <small style="color:#666;display:block;margin-top:0.25rem;">Email gerado: <strong id="emailGerado">@pmmg.mg.gov.br</strong></small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="acoes-relatorio" id="acoesRelatorio" style="display:none;">
+            <button class="btn-pdf" onclick="baixarPDF()">📄 Baixar PDF</button>
+            <button class="btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
+            <button class="btn-whatsapp" onclick="compartilharWhatsApp()">💬 Compartilhar WhatsApp</button>
+            <button class="btn-email" onclick="enviarEmail()">📧 Enviar Email</button>
+        </div>
+    </main>
+    
+    <!-- ========== CANVAS PARA GRÁFICOS (ocultos) ========== -->
+    <div style="display:none;">
+        <canvas id="chartStatus" width="400" height="400"></canvas>
+        <canvas id="chartServicos" width="600" height="400"></canvas>
+        <canvas id="chartUnidades" width="600" height="400"></canvas>
+        <canvas id="chartTendencias" width="600" height="300"></canvas>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/groq-api.js"></script>
+    <!-- Bibliotecas PDF - ANTES do código que usa elas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Código que usa as bibliotecas - DEPOIS -->
+    <script src="../js/relatorio-gerencial-pmmg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+    let relatorioAtual = null;
+    
+    // ========== LISTENER PARA ATUALIZAR EMAIL EM TEMPO REAL ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputNumeroPolicia = document.getElementById('numeroPoliciaEmail');
+        const spanEmailGerado = document.getElementById('emailGerado');
+        
+        if (inputNumeroPolicia && spanEmailGerado) {
+            inputNumeroPolicia.addEventListener('input', (e) => {
+                const numero = e.target.value.trim();
+                if (numero) {
+                    spanEmailGerado.textContent = `${numero}@pmmg.mg.gov.br`;
+                } else {
+                    spanEmailGerado.textContent = '@pmmg.mg.gov.br';
+                }
+            });
+        }
+    });
+    
+    /**
+     * Mostrar/ocultar filtro personalizado
+     */
+    function mostrarFiltroPersonalizado() {
+        const filtro = document.getElementById('filtroPersonalizado');
+        filtro.style.display = filtro.style.display === 'none' ? 'block' : 'none';
+        
+        // Definir datas padrão (último mês)
+        if (filtro.style.display === 'block') {
+            const hoje = new Date();
+            const mesPassado = new Date();
+            mesPassado.setDate(mesPassado.getDate() - 30);
+            
+            document.getElementById('dataFimCustom').valueAsDate = hoje;
+            document.getElementById('dataInicioCustom').valueAsDate = mesPassado;
+        }
+    }
+    
+    /**
+     * Gerar relatório com datas personalizadas
+     */
+    async function gerarRelatorioPersonalizado() {
+        const dataInicio = document.getElementById('dataInicioCustom').value;
+        const dataFim = document.getElementById('dataFimCustom').value;
+        
+        if (!dataInicio || !dataFim) {
+            mostrarErro('Selecione as datas de início e fim');
+            return;
+        }
+        
+        const inicio = new Date(dataInicio);
+        const fim = new Date(dataFim);
+        
+        if (inicio > fim) {
+            mostrarErro('Data de início deve ser anterior à data de fim');
+            return;
+        }
+        
+        const diffDias = Math.ceil((fim - inicio) / (1000 * 60 * 60 * 24));
+        
+        mostrarLoading('Analisando dados e gerando relatório com IA...');
+        
+        try {
+            // Buscar TODAS as OS
+            const snapshot = await db.collection('ordens_servico').get();
+            
+            if (snapshot.empty) {
+                ocultarLoading();
+                mostrarErro('Nenhuma OS encontrada no sistema');
+                return;
+            }
+            
+            // Filtrar por período personalizado
+            const osArray = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(os => {
+                    const dataOS = os.data_abertura || os.data_criacao || os.created_at || os.timestamp;
+                    if (!dataOS) return false;
+                    
+                    let dataOSDate;
+                    if (dataOS.toDate) {
+                        dataOSDate = dataOS.toDate();
+                    } else if (typeof dataOS === 'string') {
+                        dataOSDate = new Date(dataOS);
+                    } else {
+                        return false;
+                    }
+                    
+                    return dataOSDate >= inicio && dataOSDate <= fim;
+                });
+            
+            console.log(`📊 ${osArray.length} OS encontradas no período personalizado`);
+            
+            if (osArray.length === 0) {
+                ocultarLoading();
+                mostrarErro(`Nenhuma OS encontrada entre ${inicio.toLocaleDateString('pt-BR')} e ${fim.toLocaleDateString('pt-BR')}`);
+                return;
+            }
+            
+            // Gerar relatório
+            const resultado = await gerarResumoIA(osArray, {
+                texto: `${diffDias} dias`,
+                dataInicio: inicio.toLocaleDateString('pt-BR'),
+                dataFim: fim.toLocaleDateString('pt-BR')
+            });
+            
+            renderizarRelatorio(resultado, osArray, diffDias);
+            
+            relatorioAtual = {
+                resultado,
+                osArray,
+                dias: diffDias,
+                dataGeracao: new Date()
+            };
+            
+            document.getElementById('acoesRelatorio').style.display = 'flex';
+            ocultarLoading();
+            mostrarSucesso('Relatório gerado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro:', error);
+            mostrarErro('Erro ao gerar relatório: ' + error.message);
+        }
+    }
+    
+    /**
+     * Gerar relatório para o período selecionado
+     */
+    async function gerarRelatorio(dias) {
+        mostrarLoading('Analisando dados e gerando relatório com IA...');
+        
+        try {
+            // 1. Buscar TODAS as OS (sem filtro de data no Firestore)
+            const snapshot = await db.collection('ordens_servico').get();
+            
+            if (snapshot.empty) {
+                ocultarLoading();
+                mostrarErro('Nenhuma OS encontrada no sistema');
+                return;
+            }
+            
+            // 2. Filtrar por data no JavaScript
+            const dataInicio = new Date();
+            dataInicio.setDate(dataInicio.getDate() - dias);
+            
+            const osArray = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .filter(os => {
+                    // Tentar diferentes campos de data
+                    const dataOS = os.data_abertura || os.data_criacao || os.created_at || os.timestamp;
+                    if (!dataOS) return false;
+                    
+                    // Converter para Date
+                    let dataOSDate;
+                    if (dataOS.toDate) {
+                        // Firestore Timestamp
+                        dataOSDate = dataOS.toDate();
+                    } else if (typeof dataOS === 'string') {
+                        dataOSDate = new Date(dataOS);
+                    } else {
+                        return false;
+                    }
+                    
+                    return dataOSDate >= dataInicio;
+                });
+            
+            console.log(`📊 ${osArray.length} OS encontradas no período`);
+            
+            // ========== NOVO: APLICAR FILTRO POR UNIDADE (se houver) ==========
+            let osArrayFiltradas = osArray;
+            if (unidadeFiltrada) {
+                osArrayFiltradas = osArray.filter(os => {
+                    const unidadeOS = os.unidade || os.batalhao || os.solicitante?.unidade || 'Não especificada';
+                    return unidadeOS === unidadeFiltrada;
+                });
+                console.log(`🏢 Filtro aplicado: ${unidadeFiltrada} - ${osArrayFiltradas.length} OS`);
+                
+                if (osArrayFiltradas.length === 0) {
+                    ocultarLoading();
+                    mostrarErro(`Nenhuma OS encontrada para a unidade ${unidadeFiltrada} nos últimos ${dias} dias`);
+                    return;
+                }
+            }
+            
+            if (osArrayFiltradas.length === 0) {
+                ocultarLoading();
+                mostrarErro(`Nenhuma OS encontrada nos últimos ${dias} dias`);
+                return;
+            }
+            
+            // 2. Gerar análise com IA
+            const resultado = await gerarResumoIA(osArrayFiltradas, {
+                texto: `${dias} ${dias === 1 ? 'dia' : 'dias'}`,
+                dataInicio: dataInicio.toLocaleDateString('pt-BR'),
+                dataFim: new Date().toLocaleDateString('pt-BR')
+            });
+            
+            // 2.5. Analisar tendências (comparar com período anterior)
+            const tendencias = await analisarTendencias(resultado.stats, dias);
+            
+            // 3. Renderizar relatório
+            renderizarRelatorio(resultado, osArrayFiltradas, dias);
+            
+            // 4. Salvar para exportação
+            relatorioAtual = {
+                resultado,
+                osArray: osArrayFiltradas,
+                dias,
+                dataGeracao: new Date()
+            };
+            
+            // ========== NOVO: POPULAR DROPDOWN DE UNIDADES ==========
+            if (!unidadeFiltrada) {
+                popularDropdownUnidades(resultado.stats);
+            }
+            
+            // ========== NOVO: GERAR GRÁFICOS ==========
+            await gerarGraficos(resultado.stats);
+            
+            // 5. Mostrar botões de ação
+            document.getElementById('acoesRelatorio').style.display = 'flex';
+            
+            // ========== MOSTRAR CAMPOS DE CONFIGURAÇÃO ==========
+            document.getElementById('configCompartilhamento').style.display = 'block';
+            
+            ocultarLoading();
+            mostrarSucesso('Relatório gerado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro ao gerar relatório:', error);
+            mostrarErro('Erro ao gerar relatório: ' + error.message);
+        }
+    }
+    
+    /**
+     * Renderizar relatório na tela
+     */
+    function renderizarRelatorio(resultado, osArray, dias) {
+        const preview = document.getElementById('relatorioPreview');
+        
+        // ========== CORRIGIR STATS LOCALMENTE ==========
+        const statsCorrigidos = {
+            total: osArray.length,
+            finalizadas: osArray.filter(os => os.status === 'finalizada').length,
+            emAndamento: osArray.filter(os => 
+                os.status === 'em_andamento' || 
+                os.status === 'em_manutencao' || 
+                os.status === 'aguardando_peca' ||
+                os.status === 'aguardando_aprovacao' ||
+                os.status === 'pausada' ||
+                os.status === 'enviado_bh' ||
+                os.status === 'aguardando_teste' ||
+                os.status === 'testada' ||
+                os.status === 'pronta_retirada'
+            ).length,
+            abertas: osArray.filter(os => os.status === 'aberta' || !os.status).length,
+            canceladas: osArray.filter(os => os.status === 'cancelada').length
+        };
+        
+        // Adicionar percentuais
+        statsCorrigidos.percentualFinalizadas = statsCorrigidos.total > 0 
+            ? Math.round((statsCorrigidos.finalizadas / statsCorrigidos.total) * 100) 
+            : 0;
+        
+        statsCorrigidos.taxaConclusao = statsCorrigidos.percentualFinalizadas;
+        
+        // Calcular tempo médio
+        const osFinaliz = osArray.filter(os => os.status === 'finalizada' && os.data_abertura && os.data_finalizacao);
+        if (osFinaliz.length > 0) {
+            const tempoTotal = osFinaliz.reduce((sum, os) => {
+                const inicio = os.data_abertura.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura);
+                const fim = os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao);
+                const diffDias = (fim - inicio) / (1000 * 60 * 60 * 24);
+                return sum + diffDias;
+            }, 0);
+            statsCorrigidos.tempoMedio = (tempoTotal / osFinaliz.length).toFixed(1);
+        } else {
+            statsCorrigidos.tempoMedio = resultado.stats.tempoMedio || '0';
+        }
+        
+        // Mesclar stats corrigidos com o resultado da IA
+        const stats = {
+            ...resultado.stats,
+            ...statsCorrigidos
+        };
+        
+        const insights = resultado.insights || [];
+        
+        let html = `
+            <div class="relatorio-header">
+                <h1>POLÍCIA MILITAR DE MINAS GERAIS</h1>
+                <h2>7ª REGIÃO DE POLÍCIA MILITAR</h2>
+                <h2>STIC - SEÇÃO DE TECNOLOGIA DA INFORMAÇÃO</h2>
+                <h3>RELATÓRIO DE ATIVIDADES</h3>
+                <p style="margin-top:1rem;color:#666;">
+                    Período: ${stats.dataInicio || 'Últimos ' + dias + ' dias'} | Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+                </p>
+            </div>
+            
+            <!-- Indicadores Principais -->
+            <div class="secao">
+                <h3>📊 INDICADORES-CHAVE</h3>
+                <div class="indicadores-grid">
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;">
+                        <div class="indicador-valor">${stats.total}</div>
+                        <div class="indicador-label">Total de OS</div>
+                    </div>
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #28a745 0%, #20c997 100%);color:white;">
+                        <div class="indicador-valor">${stats.finalizadas}</div>
+                        <div class="indicador-label">Finalizadas (${stats.percentualFinalizadas}%)</div>
+                    </div>
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #ffc107 0%, #ff9800 100%);color:white;">
+                        <div class="indicador-valor">${stats.tempoMedio}d</div>
+                        <div class="indicador-label">Tempo Médio</div>
+                    </div>
+                    <div class="indicador-card" style="background:linear-gradient(135deg, #17a2b8 0%, #138496 100%);color:white;">
+                        <div class="indicador-valor">${stats.taxaConclusao}%</div>
+                        <div class="indicador-label">Taxa de Conclusão</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== NOVO: CARD SLA ========== -->
+            <div class="secao">
+                <h3>⏱️ ANÁLISE DE SLA (Service Level Agreement)</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;border-left:4px solid ${stats.sla.percentualSLA >= 90 ? '#28a745' : stats.sla.percentualSLA >= 80 ? '#ffc107' : '#dc3545'}">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:2.5rem;font-weight:bold;color:${stats.sla.percentualSLA >= 90 ? '#28a745' : stats.sla.percentualSLA >= 80 ? '#ffc107' : '#dc3545'}">
+                                ${stats.sla.percentualSLA}%
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Cumprimento de SLA</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;font-weight:bold;color:#28a745;">
+                                ✅ ${stats.sla.dentroSLA}
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Dentro do Prazo</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:2rem;font-weight:bold;color:#dc3545;">
+                                ❌ ${stats.sla.foraSLA}
+                            </div>
+                            <div style="color:#666;font-size:0.9rem;">Fora do Prazo</div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:1rem;background:white;border-radius:6px;">
+                        <strong style="font-size:1.2rem;">Status: ${stats.sla.status} ${stats.sla.emoji}</strong>
+                        <div style="color:#666;margin-top:0.5rem;">Meta: Resolver em até ${stats.sla.meta} dias</div>
+                    </div>
+                    ${stats.sla.osFora.length > 0 ? `
+                    <div style="margin-top:1rem;padding:1rem;background:white;border-radius:6px;">
+                        <strong style="color:#dc3545;">⚠️ OS Fora do SLA:</strong>
+                        <ul style="margin:0.5rem 0;padding-left:1.5rem;">
+                            ${stats.sla.osFora.map(os => `
+                                <li><strong>OS-${os.numero}</strong>: ${os.tipo} - ${os.tempo} dias</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <!-- ========== NOVO: CARD TENDÊNCIAS ========== -->
+            ${stats.tendencias ? `
+            <div class="secao">
+                <h3>📈 COMPARATIVO COM PERÍODO ANTERIOR</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;">
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Total de OS</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.totalAtual}</div>
+                            <div style="color:${stats.tendencias.totalMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.totalVariacao} ${stats.tendencias.totalMelhorou ? '↑' : '↓'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.totalAnterior}</div>
+                        </div>
+                        
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Tempo Médio</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.tempoAtual}d</div>
+                            <div style="color:${stats.tendencias.tempoMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.tempoVariacao} ${stats.tendencias.tempoMelhorou ? '↓ Melhorou' : '↑ Piorou'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.tempoAnterior}d</div>
+                        </div>
+                        
+                        <div style="background:white;padding:1rem;border-radius:6px;text-align:center;">
+                            <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">Taxa de Conclusão</div>
+                            <div style="font-size:1.8rem;font-weight:bold;">${stats.tendencias.taxaAtual}%</div>
+                            <div style="color:${stats.tendencias.taxaMelhorou ? '#28a745' : '#dc3545'};font-weight:bold;margin-top:0.5rem;">
+                                ${stats.tendencias.taxaVariacao} ${stats.tendencias.taxaMelhorou ? '↑' : '↓'}
+                            </div>
+                            <div style="color:#999;font-size:0.85rem;">Anterior: ${stats.tendencias.taxaAnterior}%</div>
+                        </div>
+                    </div>
+                    
+                    ${stats.tendencias.tempoMelhorou || stats.tendencias.taxaMelhorou ? `
+                    <div style="margin-top:1rem;padding:1rem;background:white;border-radius:6px;border-left:3px solid #28a745;">
+                        <strong style="color:#28a745;">✅ MELHORIAS IDENTIFICADAS:</strong>
+                        <ul style="margin:0.5rem 0;padding-left:1.5rem;">
+                            ${stats.tendencias.tempoMelhorou ? `<li>Redução de tempo de atendimento em ${stats.tendencias.tempoVariacao.replace('+', '')}</li>` : ''}
+                            ${stats.tendencias.taxaMelhorou ? `<li>Aumento na taxa de conclusão em ${stats.tendencias.taxaVariacao}</li>` : ''}
+                            ${stats.tendencias.totalMelhorou ? `<li>Aumento de produtividade: ${stats.tendencias.totalVariacao} mais OS atendidas</li>` : ''}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : `
+            <div class="secao">
+                <div style="background:#e7f3ff;padding:1rem;border-radius:6px;text-align:center;color:#0066cc;">
+                    <strong>ℹ️ PRIMEIRO PERÍODO DE ANÁLISE</strong>
+                    <p style="margin:0.5rem 0;">A partir do próximo relatório, você verá comparações de tendências!</p>
+                </div>
+            </div>
+            `}
+            
+            <!-- Resumo Executivo -->
+            <div class="secao">
+                <h3>📄 RESUMO EXECUTIVO</h3>
+                <div class="resumo-executivo" style="background:#f8f9fa;padding:1.5rem;border-radius:8px;line-height:1.8;">
+                    ${resultado.resumo}
+                </div>
+            </div>
+            
+            <!-- ========== NOVO: CARD INSIGHTS DA IA ========== -->
+            ${insights.length > 0 ? `
+            <div class="secao">
+                <h3>🤖 INSIGHTS E RECOMENDAÇÕES DA IA</h3>
+                <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                    ${insights.map(insight => {
+                        let bgColor = '#f8f9fa';
+                        let borderColor = '#dee2e6';
+                        
+                        if (insight.includes('PONTO FORTE') || insight.includes('✅')) {
+                            bgColor = '#d4edda';
+                            borderColor = '#28a745';
+                        } else if (insight.includes('ATENÇÃO') || insight.includes('⚠️')) {
+                            bgColor = '#fff3cd';
+                            borderColor = '#ffc107';
+                        } else if (insight.includes('RECOMENDAÇÃO') || insight.includes('💡')) {
+                            bgColor = '#d1ecf1';
+                            borderColor = '#17a2b8';
+                        }
+                        
+                        return `
+                            <div style="background:${bgColor};padding:1rem;margin-bottom:0.75rem;border-radius:6px;border-left:4px solid ${borderColor};">
+                                ${insight}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            <!-- Principais Serviços -->
+            <div class="secao">
+                <h3>🔧 SERVIÇOS REALIZADOS (Top 10 OS)</h3>
+                <div style="background:#f8f9fa;padding:1rem;border-radius:8px;">
+        `;
+        
+        // Listar top 10 OS
+        osArray.slice(0, 10).forEach((os, index) => {
+            const statusColor = (os.status || '').toLowerCase().includes('final') ? '#28a745' : 
+                               (os.status || '').toLowerCase().includes('andamento') ? '#ffc107' : '#17a2b8';
+            
+            html += `
+                <div class="os-detalhada" style="background:white;padding:1rem;margin-bottom:0.75rem;border-radius:6px;border-left:3px solid ${statusColor};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <strong style="font-size:1.1rem;">OS-${os.numero || os.id.substr(0, 6).toUpperCase()}</strong>
+                        <span style="background:${statusColor};color:white;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.85rem;">
+                            ${os.status || 'Aberta'}
+                        </span>
+                    </div>
+                    <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem;">
+                        <strong>Serviço:</strong> ${os.tipo_servico || os.tipo_equipamento || 'Não especificado'} | 
+                        <strong>Solicitante:</strong> ${os.solicitante?.nome || 'N/A'}
+                    </div>
+            `;
+            
+            // Adicionar fotos se existirem
+            if (os.fotos && os.fotos.length > 0) {
+                html += `
+                    <div class="os-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.5rem;margin-top:0.75rem;">
+                        ${os.fotos.slice(0, 4).map(foto => `
+                            <div class="os-foto">
+                                <img src="${foto.url}" alt="Foto OS" style="width:100%;height:120px;object-fit:cover;border-radius:6px;">
+                                ${foto.legenda ? `<div style="font-size:0.75rem;color:#666;margin-top:0.25rem;">${foto.legenda}</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+        });
+        
+        html += `
+                </div>
+            </div>
+            
+            <!-- Top Equipamentos e Unidades -->
+            <div class="secao">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                    <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                        <h4 style="margin-top:0;">🏆 TOP 5 EQUIPAMENTOS</h4>
+                        <ol style="line-height:2;">
+                            ${stats.top5Equipamentos.map(([equip, qtd]) => `
+                                <li><strong>${equip}</strong>: ${qtd} atendimento(s)</li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                    
+                    <div style="background:#f8f9fa;padding:1.5rem;border-radius:8px;">
+                        <h4 style="margin-top:0;">🏢 TOP 5 UNIDADES</h4>
+                        <ol style="line-height:2;">
+                            ${stats.porUnidade.map(unidade => `
+                                <li><strong>${unidade.nome}</strong>: ${unidade.total} OS (${unidade.percentual}%)</li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        preview.innerHTML = html;
+    }
+    
+    // ========== ETAPA 2: VARIÁVEIS GLOBAIS ==========
+    let graficosGerados = {};
+    let unidadeFiltrada = null;
+    
+    /**
+     * ========== GERAR TODOS OS GRÁFICOS ==========
+     */
+    async function gerarGraficos(stats) {
+        try {
+            console.log('📊 Gerando gráficos...');
+            
+            // Limpar gráficos anteriores
+            Object.values(graficosGerados).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            graficosGerados = {};
+            
+            // 1. Gráfico de Pizza - Status das OS
+            const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+            graficosGerados.status = new Chart(ctxStatus, {
+                type: 'pie',
+                data: {
+                    labels: ['Finalizadas', 'Em Andamento', 'Abertas'],
+                    datasets: [{
+                        data: [stats.finalizadas, stats.emAndamento, stats.abertas],
+                        backgroundColor: ['#28a745', '#ffc107', '#17a2b8'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 14 }, padding: 15 }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribuição por Status',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+            
+            // 2. Gráfico de Barras - Top 5 Serviços
+            const ctxServicos = document.getElementById('chartServicos').getContext('2d');
+            const top5Servicos = Object.entries(stats.tiposServico)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            graficosGerados.servicos = new Chart(ctxServicos, {
+                type: 'bar',
+                data: {
+                    labels: top5Servicos.map(([tipo]) => tipo),
+                    datasets: [{
+                        label: 'Quantidade de OS',
+                        data: top5Servicos.map(([, qtd]) => qtd),
+                        backgroundColor: '#007bff',
+                        borderColor: '#0056b3',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Top 5 Tipos de Serviço',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+            
+            // 3. Gráfico de Barras - Top 5 Unidades
+            const ctxUnidades = document.getElementById('chartUnidades').getContext('2d');
+            const top5Unidades = stats.porUnidade.slice(0, 5);
+            
+            graficosGerados.unidades = new Chart(ctxUnidades, {
+                type: 'bar',
+                data: {
+                    labels: top5Unidades.map(u => u.nome),
+                    datasets: [{
+                        label: 'Total de OS',
+                        data: top5Unidades.map(u => u.total),
+                        backgroundColor: '#6f42c1',
+                        borderColor: '#5a31a1',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Atendimentos por Unidade',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+            
+            // 4. Gráfico de Linha - Tendências (se houver)
+            if (stats.tendencias) {
+                const ctxTendencias = document.getElementById('chartTendencias').getContext('2d');
+                graficosGerados.tendencias = new Chart(ctxTendencias, {
+                    type: 'line',
+                    data: {
+                        labels: ['Período Anterior', 'Período Atual'],
+                        datasets: [
+                            {
+                                label: 'Total de OS',
+                                data: [stats.tendencias.totalAnterior, stats.tendencias.totalAtual],
+                                borderColor: '#007bff',
+                                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Finalizadas',
+                                data: [
+                                    Math.round(stats.tendencias.totalAnterior * (stats.tendencias.taxaAnterior / 100)),
+                                    stats.finalizadas
+                                ],
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Evolução do Volume de OS',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            console.log('✅ Gráficos gerados com sucesso!');
+            return graficosGerados;
+            
+        } catch (error) {
+            console.error('❌ Erro ao gerar gráficos:', error);
+            return {};
+        }
+    }
+    
+    /**
+     * ========== EXPORTAR PARA EXCEL ==========
+     */
+    async function exportarExcel() {
+        if (!relatorioAtual) {
+            mostrarErro('Gere um relatório primeiro!');
+            return;
+        }
+        
+        try {
+            mostrarLoading('Gerando arquivo Excel...');
+            
+            const stats = relatorioAtual.resultado.stats;
+            const osArray = relatorioAtual.osArray;
+            
+            // ===== PLANILHA 1: RESUMO =====
+            const sheetResumo = [
+                ['RELATÓRIO DE ATIVIDADES - STIC 7ª RPM/PMMG'],
+                [`Período: ${relatorioAtual.dias} dias | Gerado em: ${new Date().toLocaleString('pt-BR')}`],
+                [],
+                ['INDICADOR', 'VALOR'],
+                ['Total de OS', stats.total],
+                ['Finalizadas', `${stats.finalizadas} (${stats.percentualFinalizadas}%)`],
+                ['Em Andamento', stats.emAndamento],
+                ['Abertas', stats.abertas],
+                ['Tempo Médio', `${stats.tempoMedio} dias`],
+                ['Taxa de Conclusão', `${stats.taxaConclusao}%`],
+                [],
+                ['SLA (Meta: 3 dias)'],
+                ['Dentro do prazo', `${stats.sla.dentroSLA} (${stats.sla.percentualSLA}%)`],
+                ['Fora do prazo', stats.sla.foraSLA],
+                ['Status', stats.sla.status]
+            ];
+            
+            // ===== PLANILHA 2: OS DETALHADAS =====
+            const sheetOS = [
+                ['Número', 'Data Abertura', 'Solicitante', 'Tipo Serviço', 'Equipamento', 'Status', 'Tempo (dias)', 'Unidade']
+            ];
+            
+            osArray.forEach(os => {
+                const dataAbertura = os.data_abertura?.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura || '');
+                const tempo = os.data_finalizacao ? 
+                    Math.round((new Date(os.data_finalizacao.toDate ? os.data_finalizacao.toDate() : os.data_finalizacao) - dataAbertura) / (1000*60*60*24)) : 
+                    '-';
+                
+                sheetOS.push([
+                    os.numero || os.id.substr(0, 6).toUpperCase(),
+                    dataAbertura.toLocaleDateString('pt-BR'),
+                    os.solicitante?.nome || 'N/A',
+                    os.tipo_servico || 'N/A',
+                    os.tipo_equipamento || 'N/A',
+                    os.status || 'Aberta',
+                    tempo,
+                    os.unidade || os.batalhao || os.solicitante?.unidade || 'N/A'
+                ]);
+            });
+            
+            // ===== PLANILHA 3: ANÁLISE DE SLA =====
+            const sheetSLA = [
+                ['ANÁLISE DE SLA - Meta: 3 dias'],
+                [],
+                ['Categoria', 'Quantidade', 'Percentual'],
+                ['Dentro do SLA', stats.sla.dentroSLA, `${stats.sla.percentualSLA}%`],
+                ['Fora do SLA', stats.sla.foraSLA, `${(100 - parseFloat(stats.sla.percentualSLA)).toFixed(1)}%`],
+                [],
+                ['Status Geral', stats.sla.status],
+                []
+            ];
+            
+            if (stats.sla.osFora.length > 0) {
+                sheetSLA.push(['OS FORA DO SLA:']);
+                sheetSLA.push(['Número', 'Tipo', 'Tempo (dias)', 'Motivo']);
+                stats.sla.osFora.forEach(os => {
+                    sheetSLA.push([os.numero, os.tipo, os.tempo, os.motivo || 'Não especificado']);
+                });
+            }
+            
+            // ===== PLANILHA 4: POR UNIDADE =====
+            const sheetUnidades = [
+                ['ATENDIMENTOS POR UNIDADE'],
+                [],
+                ['Unidade', 'Total OS', 'Finalizadas', '% Conclusão', 'Principais Tipos']
+            ];
+            
+            stats.porUnidade.forEach(unidade => {
+                const percConclusao = unidade.total > 0 ? ((unidade.finalizadas / unidade.total) * 100).toFixed(1) : 0;
+                sheetUnidades.push([
+                    unidade.nome,
+                    unidade.total,
+                    unidade.finalizadas,
+                    `${percConclusao}%`,
+                    unidade.principaisTipos
+                ]);
+            });
+            
+            // ===== PLANILHA 5: TENDÊNCIAS =====
+            const sheetTendencias = [
+                ['ANÁLISE DE TENDÊNCIAS'],
+                []
+            ];
+            
+            if (stats.tendencias) {
+                const t = stats.tendencias;
+                sheetTendencias.push(
+                    ['Indicador', 'Período Anterior', 'Período Atual', 'Variação'],
+                    ['Total de OS', t.totalAnterior, t.totalAtual, t.totalVariacao],
+                    ['Tempo Médio', `${t.tempoAnterior}d`, `${t.tempoAtual}d`, t.tempoVariacao],
+                    ['Taxa de Conclusão', `${t.taxaAnterior}%`, `${t.taxaAtual}%`, t.taxaVariacao],
+                    [],
+                    ['ANÁLISE:'],
+                    ['Total de OS', t.totalMelhorou ? 'Aumentou ↑' : 'Diminuiu ↓'],
+                    ['Tempo Médio', t.tempoMelhorou ? 'Melhorou (↓)' : 'Piorou (↑)'],
+                    ['Taxa de Conclusão', t.taxaMelhorou ? 'Melhorou ↑' : 'Piorou ↓']
+                );
+            } else {
+                sheetTendencias.push(['Primeiro período de análise - Sem dados para comparação']);
+            }
+            
+            // ===== CRIAR WORKBOOK =====
+            const wb = XLSX.utils.book_new();
+            
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetResumo), 'Resumo');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetOS), 'OS Detalhadas');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetSLA), 'SLA');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetUnidades), 'Por Unidade');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetTendencias), 'Tendências');
+            
+            // ===== SALVAR ARQUIVO =====
+            const filename = `relatorio-stic-${relatorioAtual.dias}dias-${Date.now()}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            ocultarLoading();
+            mostrarSucesso('Excel exportado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro ao exportar Excel:', error);
+            mostrarErro('Erro ao exportar Excel: ' + error.message);
+        }
+    }
+    
+    /**
+     * ========== POPULAR DROPDOWN DE UNIDADES ==========
+     */
+    function popularDropdownUnidades(stats) {
+        const dropdown = document.getElementById('filtroUnidade');
+        if (!dropdown) return;
+        
+        // Limpar opções antigas (exceto "Todas")
+        dropdown.innerHTML = '<option value="">Todas as Unidades</option>';
+        
+        // Adicionar unidades
+        stats.porUnidade.forEach(unidade => {
+            const option = document.createElement('option');
+            option.value = unidade.nome;
+            option.textContent = `${unidade.nome} (${unidade.total} OS)`;
+            dropdown.appendChild(option);
+        });
+    }
+    
+    /**
+     * ========== APLICAR FILTRO POR UNIDADE ==========
+     */
+    function aplicarFiltroUnidade() {
+        const dropdown = document.getElementById('filtroUnidade');
+        const unidadeSelecionada = dropdown.value;
+        
+        if (!unidadeSelecionada) {
+            limparFiltroUnidade();
+            return;
+        }
+        
+        unidadeFiltrada = unidadeSelecionada;
+        
+        // Mostrar info do filtro
+        document.getElementById('infoFiltroUnidade').style.display = 'block';
+        document.getElementById('nomeUnidadeFiltrada').textContent = unidadeSelecionada;
+        
+        // Avisar que precisa gerar novo relatório
+        mostrarSucesso(`Filtro aplicado: ${unidadeSelecionada}. Gere o relatório novamente para ver os dados filtrados.`);
+    }
+    
+    /**
+     * ========== LIMPAR FILTRO POR UNIDADE ==========
+     */
+    function limparFiltroUnidade() {
+        unidadeFiltrada = null;
+        document.getElementById('filtroUnidade').value = '';
+        document.getElementById('infoFiltroUnidade').style.display = 'none';
+        mostrarSucesso('Filtro removido. Gere o relatório novamente para ver todos os dados.');
+    }
+    
+    /**
+     * Baixar relatório em PDF
+     */
+    async function baixarPDF() {
+        mostrarLoading('Gerando PDF com fotos...');
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let yPos = 20;
+            
+            // Configurar fonte
+            doc.setFont('helvetica');
+            
+            // ========== PÁGINA 1: CABEÇALHO + RESUMO ==========
+            
+            // Cabeçalho
+            doc.setFontSize(16);
+            doc.setTextColor(0, 51, 102);
+            doc.text('POLÍCIA MILITAR DE MINAS GERAIS', 105, yPos, { align: 'center' });
+            yPos += 8;
+            
+            doc.setFontSize(14);
+            doc.text('7ª REGIÃO - STIC', 105, yPos, { align: 'center' });
+            yPos += 8;
+            
+            doc.setFontSize(12);
+            doc.text('RELATÓRIO TÉCNICO DE ATIVIDADES', 105, yPos, { align: 'center' });
+            yPos += 6;
+            
+            // Linha decorativa
+            doc.setDrawColor(0, 51, 102);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 8;
+            
+            // Período
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Período: ${relatorioAtual.dias} dias | Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 105, yPos, { align: 'center' });
+            yPos += 10;
+            
+            // Resumo Executivo
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.setFont('helvetica', 'bold');
+            doc.text('RESUMO EXECUTIVO', 20, yPos);
+            yPos += 6;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            const resumoLinhas = doc.splitTextToSize(relatorioAtual.resultado.resumo, 170);
+            doc.text(resumoLinhas, 20, yPos);
+            yPos += (resumoLinhas.length * 4) + 8;
+            
+            // ========== RECALCULAR STATS PARA PDF ==========
+            const statsCorrigidosPDF = {
+                total: relatorioAtual.osArray.length,
+                finalizadas: relatorioAtual.osArray.filter(os => os.status === 'finalizada').length,
+                emAndamento: relatorioAtual.osArray.filter(os => 
+                    os.status === 'em_andamento' || 
+                    os.status === 'em_manutencao' || 
+                    os.status === 'aguardando_peca' ||
+                    os.status === 'aguardando_aprovacao' ||
+                    os.status === 'pausada' ||
+                    os.status === 'enviado_bh' ||
+                    os.status === 'aguardando_teste' ||
+                    os.status === 'testada' ||
+                    os.status === 'pronta_retirada'
+                ).length,
+                abertas: relatorioAtual.osArray.filter(os => os.status === 'aberta' || !os.status).length
+            };
+            
+            statsCorrigidosPDF.percentualFinalizadas = statsCorrigidosPDF.total > 0 
+                ? Math.round((statsCorrigidosPDF.finalizadas / statsCorrigidosPDF.total) * 100) 
+                : 0;
+            
+            statsCorrigidosPDF.taxaConclusao = statsCorrigidosPDF.percentualFinalizadas;
+            statsCorrigidosPDF.tempoMedio = relatorioAtual.resultado.stats.tempoMedio || '0';
+            
+            // Mesclar com stats da IA
+            const stats = {
+                ...relatorioAtual.resultado.stats,
+                ...statsCorrigidosPDF
+            };
+            
+            // Indicadores em caixas
+            
+            if (yPos > 200) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.text('INDICADORES-CHAVE', 20, yPos);
+            yPos += 6;
+            
+            // Caixas de indicadores (2x2)
+            doc.setFont('helvetica', 'normal');
+            const caixaWidth = 42;
+            const caixaHeight = 18;
+            const gap = 4;
+            
+            const indicadores = [
+                { label: 'Total de OS', valor: stats.total, cor: [52, 152, 219] },
+                { label: 'Finalizadas', valor: `${stats.finalizadas} (${stats.taxaConclusao}%)`, cor: [46, 204, 113] },
+                { label: 'Em Andamento', valor: stats.emAndamento, cor: [241, 196, 15] },
+                { label: 'Tempo Médio', valor: `${stats.tempoMedio} dias`, cor: [155, 89, 182] }
+            ];
+            
+            indicadores.forEach((ind, i) => {
+                const x = 20 + (i % 2) * (caixaWidth + gap + 43);
+                const y = yPos + Math.floor(i / 2) * (caixaHeight + gap);
+                
+                // Fundo colorido
+                doc.setFillColor(ind.cor[0], ind.cor[1], ind.cor[2]);
+                doc.rect(x, y, caixaWidth, caixaHeight, 'F');
+                
+                // Texto branco
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.text(ind.label, x + 2, y + 5);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(String(ind.valor), x + 2, y + 13);
+                doc.setFont('helvetica', 'normal');
+            });
+            
+            yPos += 2 * (caixaHeight + gap) + 8;
+            
+            // ========== PÁGINA 2: ORDENS DE SERVIÇO DETALHADAS ==========
+            
+            doc.addPage();
+            yPos = 20;
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.text('ORDENS DE SERVIÇO DO PERÍODO', 20, yPos);
+            yPos += 8;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            
+            // Listar cada OS
+            const osParaPDF = relatorioAtual.osArray.slice(0, 20); // Limite de 20 OS
+            
+            for (let i = 0; i < osParaPDF.length; i++) {
+                const os = osParaPDF[i];
+                
+                // Verificar espaço (aumentado para comportar histórico)
+                if (yPos > 220) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                // ========== CABEÇALHO DA OS ==========
+                // Número e status em linha única
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.setTextColor(0, 51, 102);
+                
+                // Simplificar número (sem duplicar "OS")
+                let numeroOS = (os.numero || os.id).toString();
+                // Se já começa com "OS", não adicionar nada
+                if (!numeroOS.startsWith('OS')) {
+                    numeroOS = `OS${numeroOS}`;
+                }
+                doc.text(numeroOS, 20, yPos);
+                
+                // Status com cor (posicionado após o número, com espaço adequado)
+                const statusCor = (os.status || '').toLowerCase().includes('final') ? [46, 204, 113] : 
+                                 (os.status || '').toLowerCase().includes('andamento') ? [241, 196, 15] : [52, 152, 219];
+                doc.setTextColor(statusCor[0], statusCor[1], statusCor[2]);
+                
+                // Status text (SEM emoji)
+                let statusText = os.status || 'Aberta';
+                if (statusText === 'finalizada') statusText = 'Finalizada';
+                else if (statusText === 'em_andamento') statusText = 'Em Andamento';
+                else if (statusText === 'em_manutencao') statusText = 'Em Manutencao';
+                else if (statusText === 'aguardando_peca') statusText = 'Aguardando Peca';
+                
+                // Posicionar status com espaço suficiente
+                doc.text(`[${statusText}]`, 70, yPos);
+                yPos += 8; // Espaço maior para não sobrepor
+                
+                // ========== INFORMAÇÕES BÁSICAS ==========
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60);
+                doc.setFontSize(8);
+                
+                const solicitanteInfo = os.solicitante?.nome || os.nome_solicitante || 'N/A';
+                const numeroPolicia = os.solicitante?.numero_policia || os.numero_policia || '';
+                const unidade = os.solicitante?.unidade || os.unidade_solicitante || '';
+                
+                const info = [
+                    `Solicitante: ${solicitanteInfo}${numeroPolicia ? ' (' + numeroPolicia + ')' : ''}${unidade ? ' - ' + unidade : ''}`,
+                    `Serviço: ${os.tipo_servico || os.tipo_equipamento || 'N/A'}`,
+                    `Equipamento: ${os.tipo_equipamento || 'N/A'}`,
+                ];
+                
+                info.forEach(linha => {
+                    doc.text(linha, 22, yPos);
+                    yPos += 4;
+                });
+                
+                // Descrição/Defeito
+                const descricao = os.defeito || os.descricao_servico || os.observacoes || 'Sem descrição';
+                doc.setTextColor(0);
+                doc.setFontSize(8);
+                const descLinhas = doc.splitTextToSize(`Descrição: ${descricao}`, 168);
+                doc.text(descLinhas, 22, yPos);
+                yPos += descLinhas.length * 4 + 6;
+                
+                // ========== HISTÓRICO REMOVIDO - Agora vai no resumo executivo ==========
+                
+                // ========== FOTOS DA INTERVENÇÃO ==========
+                if (os.fotos && os.fotos.length > 0) {
+                    // Verificar espaço
+                    if (yPos > 200) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Título
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(0, 51, 102);
+                    doc.text(`FOTOS DA INTERVENCAO (${os.fotos.length})`, 24, yPos);
+                    yPos += 6;
+                    
+                    try {
+                        // Layout: 1 foto grande + 3 pequenas
+                        const fotosParaMostrar = os.fotos.slice(0, 4);
+                        
+                        if (fotosParaMostrar.length > 0) {
+                            // FOTO 1: GRANDE (esquerda)
+                            const foto1 = fotosParaMostrar[0];
+                            if (foto1.url || foto1.thumbnail) {
+                                try {
+                                    // Foto grande
+                                    const larguraGrande = 85;
+                                    const alturaGrande = 60;
+                                    
+                                    doc.addImage(
+                                        foto1.thumbnail || foto1.url,
+                                        'JPEG',
+                                        24,
+                                        yPos,
+                                        larguraGrande,
+                                        alturaGrande
+                                    );
+                                    
+                                    // Descrição
+                                    if (foto1.descricao) {
+                                        doc.setFont('helvetica', 'normal');
+                                        doc.setFontSize(7);
+                                        doc.setTextColor(60);
+                                        const descFoto = doc.splitTextToSize(foto1.descricao, larguraGrande - 2);
+                                        doc.text(descFoto.slice(0, 1), 25, yPos + alturaGrande + 3);
+                                    }
+                                } catch (imgErr) {
+                                    console.warn('Erro ao adicionar foto 1:', imgErr);
+                                }
+                            }
+                            
+                            // FOTOS 2, 3, 4: PEQUENAS (direita, empilhadas)
+                            const larguraPequena = 60;
+                            const alturaPequena = 18;
+                            const espacamento = 2;
+                            
+                            for (let j = 1; j < Math.min(4, fotosParaMostrar.length); j++) {
+                                const foto = fotosParaMostrar[j];
+                                if (foto.url || foto.thumbnail) {
+                                    try {
+                                        const yPosFoto = yPos + ((j - 1) * (alturaPequena + espacamento));
+                                        
+                                        doc.addImage(
+                                            foto.thumbnail || foto.url,
+                                            'JPEG',
+                                            113,
+                                            yPosFoto,
+                                            larguraPequena,
+                                            alturaPequena
+                                        );
+                                        
+                                        // Descrição (opcional, sem quebra de linha)
+                                        if (foto.descricao) {
+                                            doc.setFont('helvetica', 'normal');
+                                            doc.setFontSize(6);
+                                            doc.setTextColor(80);
+                                            doc.text(foto.descricao.substring(0, 40), 114, yPosFoto + alturaPequena + 2);
+                                        }
+                                    } catch (imgErr) {
+                                        console.warn(`Erro ao adicionar foto ${j + 1}:`, imgErr);
+                                    }
+                                }
+                            }
+                            
+                            yPos += Math.max(60, (Math.min(3, fotosParaMostrar.length - 1) * (alturaPequena + espacamento))) + 8;
+                        }
+                        
+                    } catch (err) {
+                        console.warn('Erro ao processar fotos:', err);
+                    }
+                }
+                
+                // Linha separadora entre OS
+                doc.setDrawColor(200);
+                doc.setLineWidth(0.1);
+                doc.line(20, yPos, 190, yPos);
+                yPos += 6;
+            }
+            
+            // Top 5 Equipamentos
+            if (yPos > 220) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(0, 51, 102);
+            doc.text('TOP 5 EQUIPAMENTOS MAIS ATENDIDOS', 20, yPos);
+            yPos += 7;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(0);
+            stats.top5Equipamentos.forEach(([equip, qtd], index) => {
+                doc.text(`${index + 1}. ${equip}: ${qtd} atendimento(s)`, 25, yPos);
+                yPos += 5;
+            });
+            
+            // Assinatura (no final da última página, sem página nova)
+            yPos += 15;
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 250;
+            } else {
+                yPos = 250;
+            }
+            
+            // ========== NOVO: ADICIONAR GRÁFICOS ==========
+            if (Object.keys(graficosGerados).length > 0) {
+                doc.addPage();
+                yPos = 15;
+                
+                // Título da página
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 51, 102);
+                doc.text('GRÁFICOS E ANÁLISES VISUAIS', 105, yPos, { align: 'center' });
+                yPos += 8;
+                
+                // Linha separadora
+                doc.setDrawColor(0, 102, 204);
+                doc.setLineWidth(0.5);
+                doc.line(20, yPos, 190, yPos);
+                yPos += 12;
+                
+                // ===== PRIMEIRA LINHA DE GRÁFICOS =====
+                
+                // Gráfico 1: Status (Pizza) - ESQUERDA
+                if (graficosGerados.status) {
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(12, yPos, 86, 98);
+                    
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Distribuição por Status', 55, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
+                    const imgStatus = document.getElementById('chartStatus').toDataURL('image/png');
+                    doc.addImage(imgStatus, 'PNG', 15, yPos + 10, 80, 80);
+                }
+                
+                // Gráfico 2: Serviços (Barras) - DIREITA
+                if (graficosGerados.servicos) {
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(102, yPos, 96, 98);
+                    
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Top 5 Tipos de Serviço', 150, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
+                    const imgServicos = document.getElementById('chartServicos').toDataURL('image/png');
+                    doc.addImage(imgServicos, 'PNG', 105, yPos + 10, 90, 84);
+                }
+                
+                yPos += 105;
+                
+                // ===== SEGUNDA LINHA DE GRÁFICOS =====
+                
+                // Gráfico 3: Unidades (Barras Horizontais) - ESQUERDA
+                if (graficosGerados.unidades) {
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(12, yPos, 86, 78);
+                    
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Atendimentos por Unidade', 55, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
+                    const imgUnidades = document.getElementById('chartUnidades').toDataURL('image/png');
+                    doc.addImage(imgUnidades, 'PNG', 15, yPos + 10, 80, 64);
+                }
+                
+                // Gráfico 4: Tendências (Linha) - DIREITA (se existir)
+                if (graficosGerados.tendencias) {
+                    // Borda do gráfico
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.rect(102, yPos, 96, 78);
+                    
+                    // Título
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Evolução do Volume de OS', 150, yPos + 5, { align: 'center' });
+                    
+                    // Imagem
+                    const imgTendencias = document.getElementById('chartTendencias').toDataURL('image/png');
+                    doc.addImage(imgTendencias, 'PNG', 105, yPos + 10, 90, 64);
+                }
+                
+                yPos += 85;
+            }
+            
+            // Assinatura (nova página se necessário)
+            if (yPos > 240) {
+                doc.addPage();
+                yPos = 20;
+            } else {
+                yPos += 10;
+            }
+            
+            const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
+            const posto = document.getElementById('postoAssinatura').value.trim();
+            
+            doc.setTextColor(0);
+            doc.setFontSize(9);
+            doc.text('_'.repeat(60), 20, yPos);
+            yPos += 5;
+            doc.text(nome, 20, yPos);
+            if (posto) {
+                yPos += 4;
+                doc.text(posto, 20, yPos);
+            }
+            yPos += 4;
+            doc.text('STIC - 7ª RPM/PMMG', 20, yPos);
+            yPos += 4;
+            doc.text(`Divinópolis/MG, ${new Date().toLocaleDateString('pt-BR')}`, 20, yPos);
+            
+            // Salvar
+            const filename = `relatorio-stic-${relatorioAtual.dias}dias-${Date.now()}.pdf`;
+            doc.save(filename);
+            
+            ocultarLoading();
+            mostrarSucesso('PDF completo gerado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro ao gerar PDF:', error);
+            mostrarErro('Erro ao gerar PDF: ' + error.message);
+        }
+    }
+    
+    /**
+     * Compartilhar relatório via WhatsApp
+     */
+    function compartilharWhatsApp() {
+        if (!relatorioAtual) {
+            mostrarErro('Gere um relatório primeiro!');
+            return;
+        }
+        
+        // Pegar número do campo
+        const numeroWhatsApp = document.getElementById('numeroWhatsApp').value.trim();
+        
+        if (!numeroWhatsApp) {
+            mostrarErro('Preencha o número do WhatsApp!');
+            return;
+        }
+        
+        // Validar formato (somente números)
+        if (!/^\d+$/.test(numeroWhatsApp)) {
+            mostrarErro('Número inválido! Use apenas números (ex: 37999999999)');
+            return;
+        }
+        
+        const stats = relatorioAtual.resultado.stats;
+        const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
+        
+        const texto = `*PMMG - STIC 7ª RPM*
+*RELATÓRIO TÉCNICO DE ATIVIDADES*
+
+📊 *Período:* ${relatorioAtual.dias} dias
+📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
+
+📈 *INDICADORES:*
+• Total: *${stats.total}* OS
+• Finalizadas: *${stats.finalizadas}* (${stats.taxaConclusao}%)
+• Em andamento: *${stats.emAndamento}*
+• Tempo médio: *${stats.tempoMedio}* dias
+
+📋 *PRINCIPAIS SERVIÇOS:*
+${Object.entries(stats.tiposServico).slice(0, 5).map(([tipo, qtd]) => `• ${tipo}: ${qtd} OS`).join('\n')}
+
+🔧 *TOP 3 EQUIPAMENTOS:*
+${stats.top5Equipamentos.slice(0, 3).map(([e, q], i) => `${i+1}. ${e}: ${q}`).join('\n')}
+
+✅ Relatório completo disponível em PDF
+👤 Gerado por: *${nome}*
+
+_Mensagem automática - STIC 7ª RPM_`;
+        
+        // Usar número do campo (adicionar 55 se não tiver)
+        const numeroCompleto = numeroWhatsApp.startsWith('55') ? numeroWhatsApp : '55' + numeroWhatsApp;
+        const url = `https://wa.me/${numeroCompleto}?text=${encodeURIComponent(texto)}`;
+        
+        window.open(url, '_blank');
+        mostrarSucesso('WhatsApp aberto com sucesso!');
+    }
+    
+    /**
+     * Enviar relatório por email
+     */
+    function enviarEmail() {
+        if (!relatorioAtual) {
+            mostrarErro('Gere um relatório primeiro!');
+            return;
+        }
+        
+        // Pegar número de polícia do campo
+        const numeroPolicia = document.getElementById('numeroPoliciaEmail').value.trim();
+        
+        if (!numeroPolicia) {
+            mostrarErro('Preencha o número de polícia!');
+            return;
+        }
+        
+        // Validar formato (somente números)
+        if (!/^\d+$/.test(numeroPolicia)) {
+            mostrarErro('Número de polícia inválido! Use apenas números (ex: 1633965)');
+            return;
+        }
+        
+        const stats = relatorioAtual.resultado.stats;
+        const nome = document.getElementById('nomeAssinatura').value.trim() || 'Equipe STIC';
+        
+        // Email do destinatário
+        const emailDestinatario = `${numeroPolicia}@pmmg.mg.gov.br`;
+        
+        const assunto = `Relatório Técnico STIC - ${relatorioAtual.dias} dias - ${new Date().toLocaleDateString('pt-BR')}`;
+        const corpo = `Prezado(a) Comandante,
+
+Segue relatório técnico das atividades da STIC no período de ${relatorioAtual.dias} dias:
+
+═══════════════════════════════════
+INDICADORES-CHAVE
+═══════════════════════════════════
+
+Total de OS: ${stats.total}
+Finalizadas: ${stats.finalizadas} (${stats.taxaConclusao}%)
+Em andamento: ${stats.emAndamento}
+Tempo médio de atendimento: ${stats.tempoMedio} dias
+
+PRINCIPAIS SERVIÇOS:
+${Object.entries(stats.tiposServico).map(([tipo, qtd]) => `• ${tipo}: ${qtd} OS`).join('\n')}
+
+TOP 5 EQUIPAMENTOS:
+${stats.top5Equipamentos.map(([e, q], i) => `${i+1}. ${e}: ${q} atendimentos`).join('\n')}
+
+═══════════════════════════════════
+
+O relatório completo em PDF está sendo enviado em anexo (favor baixar antes de abrir este email).
+
+Atenciosamente,
+${nome}
+STIC - 7ª RPM/PMMG
+Divinópolis/MG
+
+${new Date().toLocaleString('pt-BR')}`;
+        
+        const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailto;
+        mostrarSucesso(`Email aberto para: ${emailDestinatario}`);
+    }
+    
+    /**
+     * Renderizar gráficos com Chart.js
+     */
+    function renderizarGraficos(stats) {
+        // Gráfico de Status
+        const ctxStatus = document.getElementById('graficoStatus');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
+                type: 'pie',
+                data: {
+                    labels: ['Finalizadas', 'Em Andamento', 'Abertas'],
+                    datasets: [{
+                        data: [stats.finalizadas, stats.emAndamento, stats.abertas],
+                        backgroundColor: ['#28a745', '#ffc107', '#007bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico por Dia da Semana
+        const ctxDia = document.getElementById('graficoDiaSemana');
+        if (ctxDia) {
+            const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            const valores = dias.map(d => stats.porDiaSemana[d] || 0);
+            
+            new Chart(ctxDia, {
+                type: 'bar',
+                data: {
+                    labels: dias,
+                    datasets: [{
+                        label: 'Número de OS',
+                        data: valores,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    }
+    
+    /**
+     * Exportar relatório para Excel
+     */
+    function exportarExcel() {
+        try {
+            mostrarLoading('Gerando Excel...');
+            
+            const stats = relatorioAtual.resultado.stats;
+            const osArray = relatorioAtual.osArray;
+            
+            // Criar workbook
+            const wb = XLSX.utils.book_new();
+            
+            // ABA 1: Resumo Geral
+            const resumoData = [
+                ['RELATÓRIO STIC - 7ª RPM'],
+                ['Período:', `${relatorioAtual.dias} dias`],
+                ['Gerado em:', new Date().toLocaleString('pt-BR')],
+                [],
+                ['INDICADORES'],
+                ['Total de OS', stats.total],
+                ['Finalizadas', stats.finalizadas],
+                ['Em Andamento', stats.emAndamento],
+                ['Abertas', stats.abertas],
+                ['Taxa de Conclusão', `${stats.taxaConclusao}%`],
+                ['Tempo Médio', `${stats.tempoMedio} dias`],
+                [],
+                ['SLA (Meta: ' + stats.sla.meta + ' dias)'],
+                ['Dentro do SLA', stats.sla.dentroSLA],
+                ['Fora do SLA', stats.sla.foraSLA],
+                ['% Cumprimento SLA', `${stats.sla.percentualSLA}%`]
+            ];
+            
+            const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+            XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+            
+            // ABA 2: Ordens de Serviço Detalhadas
+            const osData = [
+                ['Número', 'Status', 'Solicitante', 'Tipo de Serviço', 'Equipamento', 'Data Abertura', 'Data Finalização', 'Tempo (dias)', 'Unidade']
+            ];
+            
+            osArray.forEach(os => {
+                const dataAbertura = os.data_abertura?.toDate ? os.data_abertura.toDate() : new Date(os.data_abertura || '');
+                const dataFinal = os.data_finalizacao?.toDate ? os.data_finalizacao.toDate() : new Date(os.data_finalizacao || '');
+                const tempoDias = os.data_finalizacao ? ((dataFinal - dataAbertura) / (1000*60*60*24)).toFixed(1) : '-';
+                
+                osData.push([
+                    os.numero || os.id.substr(0, 8),
+                    os.status || 'Aberta',
+                    os.solicitante?.nome || os.nome_solicitante || 'N/A',
+                    os.tipo_servico || 'N/A',
+                    os.tipo_equipamento || 'N/A',
+                    dataAbertura.toLocaleDateString('pt-BR'),
+                    os.data_finalizacao ? dataFinal.toLocaleDateString('pt-BR') : '-',
+                    tempoDias,
+                    os.unidade || os.batalhao || 'N/A'
+                ]);
+            });
+            
+            const wsOS = XLSX.utils.aoa_to_sheet(osData);
+            XLSX.utils.book_append_sheet(wb, wsOS, 'Ordens de Serviço');
+            
+            // ABA 3: Análise por Unidade
+            if (stats.porUnidade.length > 0) {
+                const unidadeData = [
+                    ['Unidade', 'Total OS', 'Finalizadas', 'Percentual', 'Principais Serviços']
+                ];
+                
+                stats.porUnidade.forEach(u => {
+                    unidadeData.push([
+                        u.nome,
+                        u.total,
+                        u.finalizadas,
+                        `${u.percentual}%`,
+                        u.principaisTipos
+                    ]);
+                });
+                
+                const wsUnidade = XLSX.utils.aoa_to_sheet(unidadeData);
+                XLSX.utils.book_append_sheet(wb, wsUnidade, 'Por Unidade');
+            }
+            
+            // ABA 4: Top Equipamentos
+            const equipData = [['Equipamento', 'Quantidade de OS']];
+            stats.top5Equipamentos.forEach(([eq, qtd]) => {
+                equipData.push([eq, qtd]);
+            });
+            
+            const wsEquip = XLSX.utils.aoa_to_sheet(equipData);
+            XLSX.utils.book_append_sheet(wb, wsEquip, 'Top Equipamentos');
+            
+            // Salvar arquivo
+            const filename = `relatorio-stic-${relatorioAtual.dias}dias-${Date.now()}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            ocultarLoading();
+            mostrarSucesso('Excel gerado com sucesso!');
+            
+        } catch (error) {
+            ocultarLoading();
+            console.error('Erro ao gerar Excel:', error);
+            mostrarErro('Erro ao gerar Excel: ' + error.message);
+        }
+    }
+    </script>
+</body>
+</html>
