@@ -1,0 +1,321 @@
+// Assinatura Digital - STIC
+// IMPORTANTE: db, saidasRef já estão declarados no firebase-config.js
+
+// Variáveis globais para canvas
+let canvas, ctx;
+
+// Aguardar DOM carregar
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarAssinatura();
+    carregarEmprestimo();
+});
+
+function inicializarAssinatura() {
+    canvas = document.getElementById('signaturePad');
+    if (!canvas) {
+        console.error('❌ Canvas não encontrado!');
+        return;
+    }
+    
+    ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Mouse events
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+        isDrawing = false;
+    });
+
+    // Touch events
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        isDrawing = true;
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        lastX = x;
+        lastY = y;
+    });
+
+    canvas.addEventListener('touchend', () => {
+        isDrawing = false;
+    });
+}
+
+function limpar() {
+    if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+// Pegar ID da URL
+const urlParams = new URLSearchParams(window.location.search);
+const emprestimoId = urlParams.get('id');
+
+function formatarTipo(tipo) {
+    const tipos = {
+        'hd': 'HD/SSD',
+        'radio': 'Rádio Móvel',
+        'ht': 'HT',
+        'computador': 'Computador',
+        'notebook': 'Notebook',
+        'carregador': 'Carregador',
+        'antena': 'Antena',
+        'outro': 'Outro'
+    };
+    return tipos[tipo] || tipo;
+}
+
+// Carregar dados do empréstimo
+async function carregarEmprestimo() {
+    if (!emprestimoId) {
+        document.getElementById('dadosEmprestimo').innerHTML = 
+            '<div class="error-box">❌ ID do empréstimo não encontrado na URL</div>';
+        return;
+    }
+
+    console.log('Carregando empréstimo:', emprestimoId);
+
+    try {
+        const doc = await saidasRef.doc(emprestimoId).get();
+
+        if (!doc.exists) {
+            document.getElementById('dadosEmprestimo').innerHTML = 
+                '<div class="error-box">❌ Empréstimo não encontrado no sistema</div>';
+            return;
+        }
+
+        const emp = doc.data();
+        console.log('Dados carregados:', emp);
+
+        // Montar lista de itens
+        let itensHtml = '';
+        if (emp.itens && emp.itens.length > 0) {
+            emp.itens.forEach((item) => {
+                itensHtml += '<div class="info-item" style="padding-left:1rem;border-left:3px solid #667eea;margin:0.5rem 0">';
+                itensHtml += '• ' + formatarTipo(item.tipo) + ' - Patrimônio: ' + item.patrimonio;
+                if (item.numero_serie) {
+                    itensHtml += ' - Série: ' + item.numero_serie;
+                }
+                itensHtml += '</div>';
+            });
+        } else {
+            itensHtml = '<div class="info-item" style="padding-left:1rem;border-left:3px solid #667eea">';
+            itensHtml += '• ' + formatarTipo(emp.tipo_material) + ' - Patrimônio: ' + (emp.patrimonio || 'N/A');
+            itensHtml += '</div>';
+        }
+
+        let html = '';
+        html += '<div class="info-item"><strong>Recebedor:</strong> ' + (emp.militar_recebedor || emp.recebedor?.nome || 'N/A') + '</div>';
+        html += '<div class="info-item"><strong>Número PM:</strong> ' + (emp.numero_recebedor || emp.recebedor?.numero_policia || 'N/A') + '</div>';
+        html += '<div class="info-item"><strong>Unidade:</strong> ' + (emp.recebedor?.unidade || 'N/A') + '</div>';
+        html += '<div class="info-item"><strong>Itens emprestados:</strong></div>';
+        html += itensHtml;
+        html += '<div class="info-item"><strong>Data:</strong> ' + (emp.data_saida || 'N/A') + ' às ' + (emp.hora_saida || 'N/A') + '</div>';
+        html += '<div class="info-item"><strong>Prazo:</strong> ' + (emp.prazo_retorno || 'N/A') + ' às ' + (emp.hora_retorno || 'N/A') + '</div>';
+        html += '<div class="info-item"><strong>Finalidade:</strong> ' + (emp.finalidade_emprestimo || 'N/A') + '</div>';
+
+        document.getElementById('dadosEmprestimo').innerHTML = html;
+
+    } catch (error) {
+        console.error('Erro ao carregar:', error);
+        document.getElementById('dadosEmprestimo').innerHTML = 
+            '<div class="error-box">❌ Erro: ' + error.message + '<br><small>Verifique a configuração do Firebase</small></div>';
+    }
+}
+
+async function confirmar() {
+    // Verificar se assinou
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let hasDrawing = false;
+
+    for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] !== 0) {
+            hasDrawing = true;
+            break;
+        }
+    }
+
+    if (!hasDrawing) {
+        alert('❌ Por favor, assine antes de confirmar!');
+        return;
+    }
+
+    if (!confirm('Confirma a assinatura?')) {
+        return;
+    }
+
+    try {
+        // Converter canvas para Base64 (SEM usar Storage - grátis!)
+        const assinaturaBase64 = canvas.toDataURL('image/png');
+        
+        // Obter IP
+        const ip = await obterIP();
+
+        // Salvar DIRETO no Firestore (sem Storage)
+        await saidasRef.doc(emprestimoId).update({
+            assinado: true,
+            data_assinatura: new Date().toISOString(),
+            assinatura_base64: assinaturaBase64, // Base64 direto
+            ip_assinatura: ip
+        }).then(() => {
+
+        }).then(() => {
+            console.log('✅ Assinatura salva com sucesso!');
+
+            // Mostrar sucesso
+            document.getElementById('successMessage').style.display = 'block';
+            document.querySelector('.signature-buttons').style.display = 'none';
+            canvas.style.border = '2px solid #28a745';
+
+            // Adicionar botões de ação
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem';
+            actionsDiv.innerHTML = '<button onclick="baixarPDF()" class="btn-primary">📄 Baixar PDF</button>';
+            actionsDiv.innerHTML += '<button onclick="fechar()" class="btn-secondary">✅ Fechar</button>';
+            document.getElementById('successMessage').after(actionsDiv);
+
+            // NÃO fecha mais automaticamente - usuário decide quando fechar
+        });
+
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao salvar assinatura: ' + error.message);
+    }
+}
+
+function fechar() {
+    window.close();
+    setTimeout(() => {
+        window.location.href = 'about:blank';
+    }, 100);
+}
+
+async function baixarPDF() {
+    try {
+        const doc = await saidasRef.doc(emprestimoId).get();
+        const emp = doc.data();
+
+        const pw = window.open('', '_blank');
+
+        let itensHtml = '';
+        if (emp.itens && emp.itens.length > 0) {
+            emp.itens.forEach((item, index) => {
+                itensHtml += '<tr>';
+                itensHtml += '<td>' + (index + 1) + '</td>';
+                itensHtml += '<td>' + formatarTipo(item.tipo) + '</td>';
+                itensHtml += '<td>' + item.patrimonio + '</td>';
+                itensHtml += '<td>' + (item.numero_serie || '-') + '</td>';
+                itensHtml += '<td>' + (item.estado || 'Bom') + '</td>';
+                itensHtml += '</tr>';
+            });
+        } else {
+            itensHtml = '<tr><td>1</td><td>' + formatarTipo(emp.tipo_material) + '</td><td>' + 
+                        emp.patrimonio + '</td><td>' + (emp.numero_serie || '-') + '</td><td>' + 
+                        (emp.estado_conservacao || 'Bom') + '</td></tr>';
+        }
+
+        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Termo de Empréstimo</title>';
+        html += '<style>';
+        html += '@page{size:A4;margin:15mm}';
+        html += 'body{font-family:Arial;font-size:11px;line-height:1.3;padding:10px;margin:0}';
+        html += 'h1{text-align:center;color:#003366;font-size:18px;margin:5px 0}';
+        html += 'h2{text-align:center;font-size:14px;margin:5px 0;color:#555}';
+        html += 'h3{font-size:12px;margin:8px 0 5px 0;color:#003366;border-bottom:1px solid #ddd;padding-bottom:3px}';
+        html += 'table{width:100%;border-collapse:collapse;margin:8px 0;font-size:10px}';
+        html += 'th,td{border:1px solid #ddd;padding:5px 8px}';
+        html += 'th{background:#003366;color:white;font-size:10px}';
+        html += 'p{margin:4px 0;font-size:11px}';
+        html += '.assinatura{margin-top:10px;text-align:center}';
+        html += '.assinatura img{max-width:300px;max-height:100px;border:1px solid #ddd}';
+        html += '.info-box{background:#f8f9fa;padding:8px;border-radius:5px;margin:8px 0}';
+        html += '</style></head><body>';
+        html += '<h1>PMMG - STIC</h1><h2>TERMO DE EMPRÉSTIMO DE MATERIAL</h2>';
+        html += '<div class="info-box">';
+        html += '<p><strong>Recebedor:</strong> ' + emp.militar_recebedor + ' | ';
+        html += '<strong>Nº PM:</strong> ' + emp.numero_recebedor + ' | ';
+        html += '<strong>Unidade:</strong> ' + (emp.recebedor?.unidade || 'N/A') + '</p>';
+        html += '</div>';
+        html += '<h3>Materiais Emprestados:</h3>';
+        html += '<table><thead><tr><th>#</th><th>Tipo</th><th>Patrimônio</th><th>Série</th><th>Estado</th></tr></thead>';
+        html += '<tbody>' + itensHtml + '</tbody></table>';
+        html += '<h3>Detalhes:</h3>';
+        html += '<p><strong>Data Empréstimo:</strong> ' + emp.data_saida + ' às ' + emp.hora_saida + ' | ';
+        html += '<strong>Prazo Devolução:</strong> ' + emp.prazo_retorno + ' às ' + emp.hora_retorno + '</p>';
+        html += '<p><strong>Finalidade:</strong> ' + emp.finalidade_emprestimo + '</p>';
+        html += '<div class="assinatura"><h3 style="border:none">Assinatura Digital:</h3>';
+        
+        // Usar Base64 direto (sem Storage)
+        if (emp.assinatura_base64) {
+            html += '<img src="' + emp.assinatura_base64 + '">';
+        } else if (emp.assinatura_url) {
+            html += '<img src="' + emp.assinatura_url + '">';
+        } else {
+            html += '<p>Assinatura não disponível</p>';
+        }
+        
+        html += '<p style="font-size:9px;margin:3px 0"><strong>Assinado em:</strong> ' + new Date(emp.data_assinatura).toLocaleString('pt-BR') + ' | <strong>IP:</strong> ' + emp.ip_assinatura + '</p></div>';
+        html += '<script>window.onload=function(){window.print()}</script></body></html>';
+
+        pw.document.write(html);
+        pw.document.close();
+
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao gerar PDF: ' + error.message);
+    }
+}
+
+async function obterIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch {
+        return 'N/A';
+    }
+}
+
+// Carregar ao abrir a página
+carregarEmprestimo();
