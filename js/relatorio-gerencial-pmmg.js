@@ -155,8 +155,42 @@ function calcularEstatisticasGerenciais(dados) {
     
     // ✅ GARANTIR que militares sempre seja um array
     if (!stats.militares || !Array.isArray(stats.militares)) {
-        stats.militares = [...new Set(dados.map(os => os.militar_nome || os.responsavel || os.tecnico).filter(Boolean))];
+        // Log para debug - ver campos das OS
+        console.log('🔍 DEBUG - Primeiras 2 OS:', dados.slice(0, 2).map(os => ({
+            militar_nome: os.militar_nome,
+            responsavel: os.responsavel,
+            tecnico: os.tecnico,
+            atendente: os.atendente,
+            militar: os.militar,
+            usuario: os.usuario,
+            criado_por: os.criado_por
+        })));
+        
+        stats.militares = [...new Set(
+            dados.map(os => {
+                // Tentar TODAS as fontes possíveis
+                return os.militar_nome || 
+                       os.responsavel || 
+                       os.tecnico || 
+                       os.atendente ||
+                       os.militar ||
+                       os.usuario ||
+                       os.criado_por ||
+                       null;
+            })
+            .filter(Boolean) // Remove nulls
+            .map(nome => {
+                // Limpar e padronizar nome
+                if (typeof nome === 'string') {
+                    return nome.trim();
+                }
+                return nome;
+            })
+        )];
     }
+    
+    console.log('👥 Militares encontrados:', stats.militares);
+    console.log('📊 Total de militares:', stats.militares.length);
     
     // ✅ CALCULAR TIPOS DE SERVIÇO REAIS
     if (!stats.tiposServico || Object.keys(stats.tiposServico).length === 0) {
@@ -168,18 +202,26 @@ function calcularEstatisticasGerenciais(dados) {
         stats.tiposServico = tiposMap;
     }
     
-    // ✅ GARANTIR que SLA sempre exista
+    // ✅ USAR META SLA CONFIGURÁVEL
+    const metaSLAInput = document.getElementById('metaSLA');
+    const metaSLA = metaSLAInput ? parseInt(metaSLAInput.value) || 15 : 15;
+    
+    // ✅ GARANTIR que SLA sempre exista com meta configurável
     if (!stats.sla) {
         stats.sla = {
             percentualSLA: '95.0',
             dentroSLA: Math.floor(stats.total * 0.95),
             foraSLA: Math.ceil(stats.total * 0.05),
-            meta: 15,
+            meta: metaSLA,
             osFora: []
         };
+    } else {
+        // Atualizar meta no stats.sla existente
+        stats.sla.meta = metaSLA;
     }
     
     console.log('📊 Tipos de serviço encontrados:', Object.keys(stats.tiposServico));
+    console.log('🎯 Meta SLA configurada:', metaSLA, 'dias');
     
     return stats;
 }
@@ -564,11 +606,212 @@ function mostrarErroGerencial(mensagem) {
  * Funções de exportação
  */
 function imprimirRelatorio() {
-    window.print();
+    const conteudo = document.querySelector('.relatorio-pmmg');
+    
+    if (!conteudo) {
+        alert('Nenhum relatório gerado ainda!');
+        return;
+    }
+    
+    // Criar janela nova
+    const janelaImpressao = window.open('', '_blank', 'width=1200,height=800');
+    
+    if (!janelaImpressao) {
+        alert('Pop-up bloqueado! Permita pop-ups e tente novamente.');
+        return;
+    }
+    
+    // Buscar CSS inline
+    const linkCSS = document.querySelector('link[href*="relatorio-pmmg.css"]');
+    let cssContent = '';
+    
+    if (linkCSS) {
+        // Tentar pegar CSS da tag link
+        cssContent = `<link rel="stylesheet" href="${window.location.origin}${linkCSS.getAttribute('href').replace('..', '')}">`;
+    }
+    
+    // Montar HTML completo
+    janelaImpressao.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatório Gerencial PMMG</title>
+            ${cssContent}
+            <style>
+                /* CSS INLINE GARANTIDO */
+                body { 
+                    margin: 0; 
+                    padding: 20px; 
+                    font-family: Arial, sans-serif;
+                }
+                .relatorio-pmmg {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                }
+                .cabecalho-pmmg {
+                    background: linear-gradient(180deg, #B8860B 0%, #DAA520 100%);
+                    padding: 30px;
+                    text-align: center;
+                    border-bottom: 5px solid #1a1a1a;
+                }
+                .cabecalho-pmmg h1 {
+                    color: #1a1a1a;
+                    margin: 0;
+                    font-size: 2em;
+                }
+                .info-documento {
+                    background: #1a1a1a;
+                    color: #DAA520;
+                    padding: 15px;
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    text-align: center;
+                }
+                .grid-indicadores {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    padding: 20px;
+                }
+                .card-indicador {
+                    border: 2px solid #e0e0e0;
+                    padding: 20px;
+                    text-align: center;
+                    border-radius: 8px;
+                }
+                .valor-indicador {
+                    font-size: 2.5em;
+                    font-weight: 800;
+                    color: #1a1a1a;
+                }
+                .acoes-relatorio { 
+                    display: none !important; 
+                }
+                @media print {
+                    body { margin: 0; padding: 10mm; }
+                    .acoes-relatorio { display: none !important; }
+                }
+            </style>
+        </head>
+        <body>
+            ${conteudo.outerHTML}
+            <script>
+                window.onload = function() {
+                    console.log('Página carregada, aguardando impressão...');
+                    setTimeout(function() {
+                        window.print();
+                    }, 1000);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    
+    janelaImpressao.document.close();
+    console.log('✅ Janela de impressão aberta!');
 }
 
-function exportarRelatorioPDF() {
-    alert('Função de exportação PDF será implementada em breve!\nPor enquanto, use "Imprimir" e selecione "Salvar como PDF".');
+async function exportarRelatorioPDF() {
+    const conteudo = document.querySelector('.relatorio-pmmg');
+    
+    if (!conteudo) {
+        alert('❌ Nenhum relatório gerado ainda!\n\nGere um relatório primeiro clicando em um dos botões de período.');
+        return;
+    }
+    
+    console.log('📄 Iniciando exportação PDF...');
+    
+    try {
+        // Verificar html2canvas
+        if (typeof html2canvas === 'undefined') {
+            console.error('❌ html2canvas não carregado');
+            alert('❌ Biblioteca html2canvas não carregada.\n\n✅ Use "Imprimir Relatório" e selecione "Salvar como PDF".');
+            return;
+        }
+        
+        // Verificar jsPDF
+        if (typeof window.jspdf === 'undefined') {
+            console.error('❌ jsPDF não carregado');
+            alert('❌ Biblioteca jsPDF não carregada.\n\n✅ Use "Imprimir Relatório" e selecione "Salvar como PDF".');
+            return;
+        }
+        
+        console.log('✅ Bibliotecas carregadas');
+        console.log('🖼️ Convertendo HTML para imagem...');
+        
+        // Criar loading
+        const btnExportar = event?.target || document.querySelector('button[onclick*="exportarRelatorioPDF"]');
+        const textoOriginal = btnExportar ? btnExportar.innerHTML : null;
+        if (btnExportar) {
+            btnExportar.disabled = true;
+            btnExportar.innerHTML = '⏳ Gerando PDF...';
+        }
+        
+        // Converter HTML para canvas
+        const canvas = await html2canvas(conteudo, {
+            scale: 2,
+            logging: true,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        console.log('✅ Imagem gerada');
+        console.log('📊 Criando PDF...');
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Primeira página
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Páginas adicionais se necessário
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        console.log('✅ PDF criado');
+        console.log('💾 Salvando arquivo...');
+        
+        // Salvar
+        const dataHora = new Date().toISOString().slice(0, 10);
+        pdf.save(`relatorio-gerencial-pmmg-${dataHora}.pdf`);
+        
+        console.log('✅ PDF salvo com sucesso!');
+        alert('✅ PDF gerado com sucesso!\n\nArquivo: relatorio-gerencial-pmmg-' + dataHora + '.pdf');
+        
+        // Restaurar botão
+        if (btnExportar && textoOriginal) {
+            btnExportar.disabled = false;
+            btnExportar.innerHTML = textoOriginal;
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao gerar PDF:', error);
+        console.error('Stack:', error.stack);
+        alert(`❌ Erro ao gerar PDF: ${error.message}\n\n✅ Use "Imprimir Relatório" e selecione "Salvar como PDF".`);
+        
+        // Restaurar botão em caso de erro
+        const btnExportar = event?.target || document.querySelector('button[onclick*="exportarRelatorioPDF"]');
+        if (btnExportar) {
+            btnExportar.disabled = false;
+            btnExportar.innerHTML = '📄 Exportar PDF';
+        }
+    }
 }
 
 console.log('✅ Módulo Relatório Gerencial PMMG carregado!');
