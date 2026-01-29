@@ -96,13 +96,38 @@ function obterPeriodo(periodo) {
 function gerarCards() {
     const container = document.getElementById('cardsEstatisticas');
     
+    // ✅ CORREÇÃO: Normalizar status para comparação (case-insensitive e variações)
+    const normalizarStatus = (status) => (status || '').toLowerCase().trim();
+    
     const stats = {
         total: dadosRelatorio.length,
-        abertas: dadosRelatorio.filter(os => os.status === 'aberta').length,
-        emManutencao: dadosRelatorio.filter(os => os.status === 'em_manutencao').length,
-        finalizadas: dadosRelatorio.filter(os => os.status === 'finalizada').length,
+        // ✅ CORREÇÃO: Considerar variações de status
+        abertas: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'aberta' || s === 'novo' || s === 'pendente' || s === 'nova';
+        }).length,
+        emManutencao: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'em_manutencao' || s === 'em manutenção' || s === 'em andamento' || 
+                   s === 'em_andamento' || s === 'em execução' || s === 'em_execucao';
+        }).length,
+        aguardandoPeca: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'aguardando_peca' || s === 'aguardando peça' || s === 'aguardando pecas' ||
+                   s === 'aguardando_pecas' || s === 'aguardando material';
+        }).length,
+        finalizadas: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'finalizada' || s === 'finalizado' || s === 'concluída' || 
+                   s === 'concluida' || s === 'concluído' || s === 'concluido' ||
+                   s === 'fechada' || s === 'fechado' || s === 'resolvida' || s === 'resolvido';
+        }).length,
         tempoMedio: calcularTempoMedio()
     };
+    
+    // ✅ NOVO: Calcular percentuais
+    const percentualFinalizadas = stats.total > 0 ? ((stats.finalizadas / stats.total) * 100).toFixed(1) : 0;
+    const percentualAbertas = stats.total > 0 ? ((stats.abertas / stats.total) * 100).toFixed(1) : 0;
     
     container.innerHTML = `
         <div class="stat-card">
@@ -118,6 +143,7 @@ function gerarCards() {
             <div class="stat-info">
                 <h3>Abertas</h3>
                 <p class="stat-number">${stats.abertas}</p>
+                <small style="color: #666;">${percentualAbertas}% do total</small>
             </div>
         </div>
         
@@ -130,10 +156,19 @@ function gerarCards() {
         </div>
         
         <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <h3>Aguardando Peça</h3>
+                <p class="stat-number">${stats.aguardandoPeca}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
             <div class="stat-icon">✅</div>
             <div class="stat-info">
                 <h3>Finalizadas</h3>
                 <p class="stat-number">${stats.finalizadas}</p>
+                <small style="color: rgba(255,255,255,0.8);">${percentualFinalizadas}% de conclusão</small>
             </div>
         </div>
         
@@ -183,12 +218,34 @@ function gerarGraficoStatus() {
         graficos.status.destroy();
     }
     
+    // ✅ CORREÇÃO: Normalizar status para comparação
+    const normalizarStatus = (status) => (status || '').toLowerCase().trim();
+    
     const dados = {
-        aberta: dadosRelatorio.filter(os => os.status === 'aberta').length,
-        em_manutencao: dadosRelatorio.filter(os => os.status === 'em_manutencao').length,
-        aguardando_peca: dadosRelatorio.filter(os => os.status === 'aguardando_peca').length,
-        enviado_bh: dadosRelatorio.filter(os => os.status === 'enviado_bh').length,
-        finalizada: dadosRelatorio.filter(os => os.status === 'finalizada').length
+        aberta: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'aberta' || s === 'novo' || s === 'pendente' || s === 'nova';
+        }).length,
+        em_manutencao: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'em_manutencao' || s === 'em manutenção' || s === 'em andamento' || 
+                   s === 'em_andamento' || s === 'em execução' || s === 'em_execucao';
+        }).length,
+        aguardando_peca: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'aguardando_peca' || s === 'aguardando peça' || s === 'aguardando pecas' ||
+                   s === 'aguardando_pecas' || s === 'aguardando material';
+        }).length,
+        enviado_bh: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'enviado_bh' || s === 'enviado bh' || s === 'enviado para bh';
+        }).length,
+        finalizada: dadosRelatorio.filter(os => {
+            const s = normalizarStatus(os.status);
+            return s === 'finalizada' || s === 'finalizado' || s === 'concluída' || 
+                   s === 'concluida' || s === 'concluído' || s === 'concluido' ||
+                   s === 'fechada' || s === 'fechado' || s === 'resolvida' || s === 'resolvido';
+        }).length
     };
     
     graficos.status = new Chart(ctx, {

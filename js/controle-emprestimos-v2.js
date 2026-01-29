@@ -552,7 +552,17 @@ function copiarLink(link) {
 }
 
 function enviarWhatsApp(telefone, mensagem) {
-    const url = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
+    // ✅ CORREÇÃO: Validar telefone antes de enviar
+    const telefoneLimpo = telefone ? telefone.replace(/\D/g, '') : '';
+    
+    if (!telefoneLimpo || telefoneLimpo.length < 10) {
+        alert('⚠️ Telefone não cadastrado ou inválido!\n\nPara enviar por WhatsApp, cadastre o telefone do recebedor no formulário de empréstimo.');
+        return;
+    }
+    
+    // Adicionar código do país se necessário
+    const telComPais = telefoneLimpo.startsWith('55') ? telefoneLimpo : `55${telefoneLimpo}`;
+    const url = `https://wa.me/${telComPais}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
 

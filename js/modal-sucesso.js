@@ -183,8 +183,8 @@ const ModalSucesso = {
                                     <span>Enviar Email</span>
                                 </button>
                                 ` : ''}
-                                ${dados.telefone || dados.numero_recebedor ? `
-                                <button class="btn-compartilhar whatsapp" onclick="ModalSucesso.enviarWhatsApp('${dados.telefone || dados.numero_recebedor}', '${link}', 'Emprestimo', '${emprestimoId}')">
+                                ${dados.telefone || dados.recebedor?.telefone ? `
+                                <button class="btn-compartilhar whatsapp" onclick="ModalSucesso.enviarWhatsApp('${dados.telefone || dados.recebedor?.telefone || ''}', '${link}', 'Emprestimo', '${emprestimoId}')">
                                     <span class="btn-compartilhar-icon">💬</span>
                                     <span>WhatsApp</span>
                                 </button>
@@ -225,10 +225,17 @@ const ModalSucesso = {
     
     /**
      * Enviar WhatsApp
+     * ✅ MELHORADO: Validação de telefone antes de enviar
      */
     enviarWhatsApp(telefone, link, tipo, numero) {
-        // Limpar telefone
-        const tel = telefone.replace(/\D/g, '');
+        // Limpar telefone (remover tudo que não é número)
+        const tel = telefone ? telefone.replace(/\D/g, '') : '';
+        
+        // Validar se é um telefone válido (mínimo 10 dígitos)
+        if (!tel || tel.length < 10) {
+            alert('⚠️ Telefone não cadastrado ou inválido!\n\nPara enviar por WhatsApp, é necessário que o telefone do solicitante/recebedor esteja preenchido corretamente no cadastro.');
+            return;
+        }
         
         // Mensagens por tipo
         const mensagens = {
@@ -237,7 +244,11 @@ const ModalSucesso = {
         };
         
         const mensagem = mensagens[tipo] || `Link: ${link}`;
-        const url = `https://wa.me/${tel}?text=${encodeURIComponent(mensagem)}`;
+        
+        // Adicionar código do país (55) se necessário
+        const telComPais = tel.startsWith('55') ? tel : `55${tel}`;
+        
+        const url = `https://wa.me/${telComPais}?text=${encodeURIComponent(mensagem)}`;
         
         window.open(url, '_blank');
         this.mostrarToast('WhatsApp aberto!', 'success');

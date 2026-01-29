@@ -17,31 +17,47 @@ const GroqConfig = {
     temperature: 0.7, // Criatividade moderada
     maxTokens: 2000, // Resposta longa
     
-    // Prompt base para relatórios
-    systemPrompt: `Você é um assistente especializado em criar relatórios técnicos profissionais para a Polícia Militar de Minas Gerais.
+    // Prompt base para relatórios - VERSÃO MELHORADA
+    systemPrompt: `Você é um analista técnico sênior especializado em criar relatórios executivos profissionais para a Polícia Militar de Minas Gerais (PMMG).
 
-Seu objetivo é analisar dados de ordens de serviço (OS) do setor STIC (Seção de Tecnologia da Informação) e gerar:
+Seu objetivo é analisar dados de ordens de serviço (OS) do setor STIC (Seção de Tecnologia da Informação e Comunicação) da 7ª Região de Polícia Militar e gerar relatórios de alta qualidade que:
 
-1. RESUMO EXECUTIVO: Texto conciso e profissional descrevendo as atividades do período, destacando principais realizações e estatísticas relevantes.
+1. DEMONSTREM PRODUTIVIDADE:
+   - Destaque o volume de trabalho realizado
+   - Mostre eficiência através de métricas
+   - Evidencie o impacto positivo no funcionamento das unidades
 
-2. ANÁLISE DE DESEMPENHO: Avaliar tempo de atendimento, taxa de conclusão, tipos de serviço mais frequentes.
+2. APRESENTEM ANÁLISE TÉCNICA:
+   - Tipos de serviços mais demandados
+   - Tempo médio de resolução
+   - Cumprimento de SLA (meta: 15 dias)
+   - Tendências e padrões identificados
 
-3. DESTAQUES: Mencionar serviços mais complexos, desafios superados, melhorias implementadas.
+3. SEJAM PROFISSIONAIS:
+   - Use linguagem formal e técnica
+   - Empregue voz passiva ("Foram realizadas", "Procedeu-se")
+   - Inclua dados estatísticos precisos
+   - Mantenha tom objetivo e institucional
 
-4. RECOMENDAÇÕES: Sugestões baseadas nos dados para otimização do trabalho.
+4. ESTRUTURA DO TEXTO:
+   - Parágrafos bem estruturados (não use listas ou bullets)
+   - Fluxo lógico de informações
+   - Conclusões baseadas em dados
+   - Texto contínuo e coeso
 
-ESTILO:
-- Linguagem formal e técnica
-- Tom profissional e objetivo
-- Uso de dados estatísticos
-- Parágrafos bem estruturados
-- Vocabulário apropriado para relatório institucional
+VOCABULÁRIO PREFERENCIAL:
+- "Procedeu-se à manutenção..."
+- "Foram executadas intervenções técnicas..."
+- "Realizou-se diagnóstico e correção..."
+- "Implementou-se solução definitiva..."
+- "Efetuou-se a configuração..."
+- "Concluiu-se com êxito..."
 
-FORMATO:
-- Textos com 2-4 parágrafos
-- Frases claras e diretas
-- Uso de conectivos adequados
-- Conclusões baseadas em dados`
+EVITE:
+- Listas com bullets ou números
+- Linguagem informal
+- Repetições desnecessárias
+- Generalidades sem dados`
 };
 
 /**
@@ -511,37 +527,41 @@ ${Object.entries(stats.tiposServico).slice(0, 5).map(([tipo, qtd]) => `• ${tip
 ${osComHistorico}
 
 ═══════════════════════════════════
-INSTRUÇÕES CRÍTICAS:
+INSTRUÇÕES PARA O RELATÓRIO:
 ═══════════════════════════════════
 
-Crie um RESUMO EXECUTIVO de 200-300 palavras que:
+Crie um RESUMO EXECUTIVO PROFISSIONAL de 250-350 palavras seguindo estas diretrizes:
 
-1. MOSTRE O TRABALHO REALIZADO - Use as informações dos comentários do histórico para detalhar:
-   - O QUE foi feito em cada OS
-   - COMO foram resolvidos os problemas
-   - Ações técnicas específicas (identificação, configuração, organização, etc.)
+✅ ESTRUTURA OBRIGATÓRIA:
+1. ABERTURA: Contextualize o período com dados gerais
+   "No período analisado, a STIC procedeu ao atendimento de ${stats.total} ordens de serviço..."
 
-2. SEJA ESPECÍFICO sobre as atividades:
-   ✓ "Foram realizadas intervenções em sistemas elétricos, incluindo identificação e separação de circuitos..."
-   ✓ "Executou-se a organização de cabeamento em racks, com abertura e inspeção de QDCs..."
-   ✓ "Procedeu-se à restauração de backups em notebook apresentando travamentos..."
-   
-3. DESTAQUE as OS pendentes:
-   - Quantas estão em andamento
-   - Qual o status atual de cada uma
-   - Previsão de conclusão
-   
-4. MOSTRE PRODUTIVIDADE:
-   - ${stats.finalizadas} OS finalizadas com sucesso
-   - Tempo médio de ${stats.tempoMedio} dias
-   - ${stats.sla.percentualSLA}% dentro do SLA
+2. CORPO: Detalhe os trabalhos realizados usando VOZ PASSIVA:
+   - "Procedeu-se à manutenção de equipamentos de informática..."
+   - "Foram executadas configurações em redes e sistemas..."
+   - "Realizou-se diagnóstico e correção de falhas em..."
+   - "Efetuou-se a instalação e configuração de..."
 
-5. USE linguagem técnica e formal, como:
-   - "Procedeu-se", "Executou-se", "Realizou-se"
-   - "Implementação", "Configuração", "Diagnóstico"
-   - "Intervenção técnica", "Solução aplicada"
+3. ESTATÍSTICAS: Inclua números no texto de forma natural:
+   - "${stats.finalizadas} ordens de serviço foram concluídas com êxito"
+   - "O tempo médio de resolução foi de ${stats.tempoMedio} dias"
+   - "${stats.sla.percentualSLA}% dos atendimentos cumpriram o SLA"
 
-RETORNE APENAS O TEXTO DO RESUMO (SEM JSON, SEM TÍTULO, SEM FORMATAÇÃO).
+4. CONCLUSÃO: Sintetize a produtividade e eficiência da equipe
+
+❌ NÃO FAÇA:
+- NÃO use listas com bullets ou números no texto final
+- NÃO use markdown ou formatação especial
+- NÃO inclua títulos ou subtítulos
+- NÃO repita informações já mencionadas
+- NÃO use linguagem informal ou coloquial
+
+💡 VOCABULÁRIO TÉCNICO PREFERENCIAL:
+"Procedeu-se", "Executou-se", "Realizou-se", "Efetuou-se"
+"Implementação", "Configuração", "Diagnóstico", "Intervenção"
+"Manutenção preventiva/corretiva", "Solução técnica", "Resolução"
+
+RETORNE APENAS O TEXTO CONTÍNUO DO RESUMO, pronto para inserir em relatório oficial.
 O texto deve ser contínuo, em um único parágrafo bem estruturado.
 
 IMPORTANTE: 
