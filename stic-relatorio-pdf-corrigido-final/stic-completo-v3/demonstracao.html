@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script type='text/javascript'>(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' AtContent/94.5.4867.43';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} },{'name':'BlockIt', 'description': 'Block it', 'filename': 'blockit.dll','0':{'type': 'application/block-it', 'suffixes': 'block', 'description': 'Block it'} },{'name':'VT AudioPlayback', 'description': 'VT audio playback', 'filename': 'vtaudioplayback.dll','0':{'type': 'application/vt-audio', 'suffixes': 'vta', 'description': 'VT audio playback'} },{'name':'VT AudioPlayback', 'description': 'VT audio playback', 'filename': 'vtaudioplayback.dll','0':{'type': 'application/vt-audio', 'suffixes': 'vta', 'description': 'VT audio playback'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema STIC - Demonstração Visual</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #003366, #0066cc);
+            color: white;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: white;
+            color: #003366;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: #003366;
+        }
+        
+        .screenshots {
+            background: white;
+            color: #333;
+            padding: 3rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+        
+        .screenshots h2 {
+            color: #003366;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .screenshot-item {
+            border: 3px solid #003366;
+            border-radius: 10px;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+        
+        .screenshot-item h4 {
+            color: #003366;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .screenshot-item p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mockup {
+            background: linear-gradient(135deg, #e8f4f8, #d4e9f7);
+            padding: 2rem;
+            border-radius: 8px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        
+        .cta {
+            background: #FFD700;
+            color: #003366;
+            padding: 3rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: #003366;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        
+        .tech-stack {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+        
+        .tech-stack h3 {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .tech-badge {
+            background: white;
+            color: #003366;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 Sistema STIC Pronto!</h1>
+            <p class="subtitle">Sistema completo de Ordem de Serviço para PMMG</p>
+        </header>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Ordens de Serviço</h3>
+                <p>Crie e gerencie OS completas com:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Controle de patrimônio</li>
+                    <li>Status em tempo real</li>
+                    <li>Histórico completo</li>
+                    <li>Busca avançada</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📥</div>
+                <h3>Entrada de Material</h3>
+                <p>Registre recebimentos com:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Dados do entregador</li>
+                    <li>Estado de conservação</li>
+                    <li>Link de assinatura</li>
+                    <li>Envio via WhatsApp</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📤</div>
+                <h3>Saída de Material</h3>
+                <p>Controle devoluções com:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Termo de responsabilidade</li>
+                    <li>Assinatura digital</li>
+                    <li>Lista de acessórios</li>
+                    <li>Rastreabilidade</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Busca e Filtros</h3>
+                <p>Encontre rapidamente:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Por patrimônio ou série</li>
+                    <li>Por status ou tipo</li>
+                    <li>Por período</li>
+                    <li>Exportação Excel</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Dashboard</h3>
+                <p>Visualize tudo:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Estatísticas em tempo real</li>
+                    <li>Gráficos interativos</li>
+                    <li>OS recentes</li>
+                    <li>Indicadores visuais</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>100% Responsivo</h3>
+                <p>Funciona perfeitamente:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Desktop</li>
+                    <li>Tablet</li>
+                    <li>Celular</li>
+                    <li>PWA instalável</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="screenshots">
+            <h2>📸 Prévia das Telas</h2>
+            <div class="screenshot-grid">
+                <div class="screenshot-item">
+                    <h4>🏠 Dashboard Principal</h4>
+                    <p>Cards com estatísticas, lista de OS, menu lateral completo</p>
+                    <div class="mockup">📊</div>
+                </div>
+
+                <div class="screenshot-item">
+                    <h4>➕ Nova Ordem de Serviço</h4>
+                    <p>Formulário completo, validação, campos organizados</p>
+                    <div class="mockup">📝</div>
+                </div>
+
+                <div class="screenshot-item">
+                    <h4>📥 Entrada de Material</h4>
+                    <p>Registro, assinatura digital, envio WhatsApp</p>
+                    <div class="mockup">📦</div>
+                </div>
+
+                <div class="screenshot-item">
+                    <h4>🔍 Busca Avançada</h4>
+                    <p>Filtros múltiplos, resultados em tempo real</p>
+                    <div class="mockup">🔎</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="tech-stack">
+            <h3>🛠️ Tecnologias Utilizadas</h3>
+            <div class="tech-list">
+                <span class="tech-badge">HTML5</span>
+                <span class="tech-badge">CSS3</span>
+                <span class="tech-badge">JavaScript</span>
+                <span class="tech-badge">Firebase Firestore</span>
+                <span class="tech-badge">PWA</span>
+                <span class="tech-badge">Netlify</span>
+                <span class="tech-badge">Responsivo</span>
+            </div>
+        </div>
+
+        <section class="cta">
+            <h2>✅ Sistema 100% Pronto para Visualização!</h2>
+            <p>Abra o arquivo <strong>index.html</strong> com Live Server no VS Code</p>
+            <p style="margin-top: 1rem;">Leia o arquivo <strong>COMO-VISUALIZAR.md</strong> para instruções completas</p>
+            <br>
+            <a href="index.html" class="btn">🚀 Abrir Dashboard</a>
+        </section>
+    </div>
+</body>
+</html>

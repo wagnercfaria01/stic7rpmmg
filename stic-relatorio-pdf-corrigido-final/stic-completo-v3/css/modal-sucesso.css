@@ -1,0 +1,398 @@
+/* ============================================
+   MODAL DE SUCESSO - SISTEMA STIC
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-sucesso {
+    background: white;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px 16px 0 0;
+    text-align: center;
+}
+
+.modal-header-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: successPulse 0.6s ease;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.modal-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.95;
+    font-size: 1rem;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.resumo-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #007bff;
+}
+
+.resumo-card h3 {
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.resumo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.resumo-item:last-child {
+    border-bottom: none;
+}
+
+.resumo-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.resumo-valor {
+    color: #212529;
+    font-weight: 600;
+    text-align: right;
+}
+
+.notificacoes-card {
+    background: #e7f5ff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #17a2b8;
+}
+
+.notificacoes-card h3 {
+    color: #0c5460;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notificacao-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.notificacao-item:last-child {
+    margin-bottom: 0;
+}
+
+.notificacao-icon {
+    font-size: 1.5rem;
+}
+
+.notificacao-texto {
+    flex: 1;
+}
+
+.notificacao-status {
+    font-size: 1.25rem;
+}
+
+.compartilhar-card {
+    background: #fff3cd;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #ffc107;
+}
+
+.compartilhar-card h3 {
+    color: #856404;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.botoes-compartilhar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.btn-compartilhar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.btn-compartilhar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-compartilhar.whatsapp {
+    border-color: #25d366;
+    color: #25d366;
+}
+
+.btn-compartilhar.whatsapp:hover {
+    background: #25d366;
+    color: white;
+}
+
+.btn-compartilhar.copiar {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.btn-compartilhar.copiar:hover {
+    background: #007bff;
+    color: white;
+}
+
+.btn-compartilhar.pdf {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-compartilhar.pdf:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-compartilhar.email {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-compartilhar.email:hover {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-compartilhar-icon {
+    font-size: 2rem;
+}
+
+.link-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.link-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.link-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: white;
+}
+
+.btn-copiar-link {
+    padding: 0.75rem 1.5rem;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-copiar-link:hover {
+    background: #0056b3;
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-modal {
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-modal.primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-modal.primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-modal.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-modal.secondary:hover {
+    background: #545b62;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Toast de confirmação */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #28a745;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    animation: slideInRight 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toast.error {
+    background: #dc3545;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .modal-sucesso {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .botoes-compartilhar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .btn-modal {
+        width: 100%;
+    }
+}
