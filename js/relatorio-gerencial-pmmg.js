@@ -281,56 +281,68 @@ function criarPromptGerencialPMMG(stats, periodo, dadosOS) {
             });
     }
     
-    return `Você é um analista técnico MILITAR especializado em relatórios GERENCIAIS para CHEFIAS ADMINISTRATIVAS da PMMG.
+    return `Você é um analista técnico MILITAR da PMMG criando relatório gerencial profissional para a chefia.
 
-Analise os dados REAIS abaixo e crie um relatório VERDADEIRO baseado no trabalho que FOI EFETIVAMENTE REALIZADO.
+ESCREVA LIVREMENTE E COM QUALIDADE, demonstrando:
+✅ Competência técnica da equipe
+✅ Qualidade dos serviços executados
+✅ Problemas solucionados com eficiência
+✅ Gargalos identificados (ex: aguardando material, falta de peças)
+✅ Proatividade e soluções implementadas
 
 ═══════════════════════════════════════
 DADOS DO PERÍODO: ${periodoTexto}
 ═══════════════════════════════════════
 
-📊 INDICADORES-CHAVE (REAIS):
-• Total de OS: ${total}
+📊 INDICADORES:
+• Total: ${total} OS
 • Finalizadas: ${finalizadas} (${percentualFinalizadas}%)
-• Taxa de Conclusão: ${taxaConclusao}%
+• SLA: ${sla.percentualSLA}%
 • Tempo Médio: ${tempoMedio} dias
-• SLA Cumprido: ${sla.percentualSLA}%
-• Militares Envolvidos: ${militares.length}
+• Militares: ${militares.length}
 
 ${tiposServico}
 
 ${detalhesOS}
 
 ═══════════════════════════════════════
-INSTRUÇÕES PARA ANÁLISE:
+INSTRUÇÕES:
 ═══════════════════════════════════════
 
-ANALISE AS OS REAIS ACIMA e crie um relatório que:
+Crie relatório VERDADEIRO que demonstre:
 
-1️⃣ RESUMO EXECUTIVO (6 linhas):
-   • Mencione TIPOS DE SERVIÇO que foram REALMENTE executados
-   • Use os NÚMEROS reais (${total} OS, ${percentualFinalizadas}% conclusão)
-   • Cite UNIDADES que foram atendidas (veja nas OS acima)
-   • Foque em RESULTADO e IMPACTO real
-   • Use linguagem militar formal
+1️⃣ RESUMO EXECUTIVO (livre, ~8 linhas):
+   • Contextualize o trabalho realizado
+   • Mencione tipos de serviço e unidades REAIS
+   • Destaque qualidade e eficiência
+   • Use linguagem militar formal mas fluida
 
-2️⃣ ANÁLISE TÉCNICA:
-   • Liste os TIPOS DE SERVIÇO mais executados (veja acima)
-   • Identifique PROBLEMAS que foram resolvidos (veja descrições)
-   • Mencione AÇÕES CORRETIVAS que foram tomadas (veja soluções)
+2️⃣ ANÁLISE TÉCNICA (seja específico):
+   • Principais atendimentos executados
+   • Problemas críticos neutralizados
+   • Ações corretivas e soluções aplicadas
+   • Demonstre competência técnica!
 
-3️⃣ IMPACTO OPERACIONAL:
-   • Baseado nas OS: que CONTINUIDADE foi garantida?
-   • Que RISCOS foram evitados? (veja os problemas resolvidos)
-   • Que BENEFÍCIOS foram gerados? (seja específico)
+3️⃣ IMPACTO OPERACIONAL (demonstre valor):
+   • Que continuidade foi garantida?
+   • Que riscos foram evitados?
+   • Que benefícios concretos foram gerados?
+   • Seja específico com base nas OS reais!
 
 4️⃣ CONCLUSÃO GERENCIAL:
    • Situação: ESTÁVEL/ATENÇÃO/CRÍTICA (baseado no SLA ${sla.percentualSLA}%)
-   • Gargalos: identifique SE HOUVER algum padrão de problemas
-   • Recomendações: baseadas no que foi observado
+   • Gargalos: cite SE HOUVER (ex: aguardando material, falta peças)
+   • Recomendações práticas e relevantes
+
+IMPORTANTE:
+✅ Escreva LIVREMENTE mas BASEADO NAS OS REAIS
+✅ Demonstre QUALIDADE do trabalho executado
+✅ Identifique gargalos REAIS (não invente)
+✅ Use linguagem profissional militar
+✅ Máximo ~400 palavras (cabe em 2-3 folhas)
 
 ═══════════════════════════════════════
-FORMATO DE RESPOSTA:
+FORMATO HTML:
 ═══════════════════════════════════════
 
 Retorne APENAS HTML puro com esta estrutura:
