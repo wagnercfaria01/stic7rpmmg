@@ -185,15 +185,49 @@ function aplicarFiltros() {
 }
 
 function determinarStatus(hora) {
+    // Se já foi lançado no CAD2, retorna "lancado"
     if (hora.lancado_cad2) {
         return 'lancado';
     }
     
     const hoje = new Date();
-    const dataLancamento = new Date(hora.data_prevista_lancamento);
+    hoje.setHours(0, 0, 0, 0);
     
-    if (dataLancamento < hoje) {
+    const dataHora = new Date(hora.data);
+    dataHora.setHours(0, 0, 0, 0);
+    
+    // Calcular quando PODE lançar (7 dias após a data da hora)
+    const podeLancarAPartirDe = new Date(dataHora);
+    podeLancarAPartirDe.setDate(podeLancarAPartirDe.getDate() + 7);
+    
+    // Calcular a próxima SEXTA após poder lançar
+    const proximaSexta = new Date(podeLancarAPartirDe);
+    const diaSemana = proximaSexta.getDay();
+    if (diaSemana <= 5) {
+        proximaSexta.setDate(proximaSexta.getDate() + (5 - diaSemana));
+    } else {
+        proximaSexta.setDate(proximaSexta.getDate() + (12 - diaSemana)); // próxima sexta
+    }
+    proximaSexta.setHours(23, 59, 59, 999);
+    
+    // Guardar a data limite no objeto para exibição
+    hora.data_limite_lancamento = proximaSexta;
+    
+    // ✅ CORREÇÃO PRINCIPAL:
+    // Só está "atrasado" se PASSOU da sexta-feira limite
+    if (hoje > proximaSexta) {
         return 'atrasado';
+    }
+    
+    // Se ainda não passaram 7 dias, está "aguardando"
+    if (hoje < podeLancarAPartirDe) {
+        return 'aguardando'; // NOVO STATUS
+    }
+    
+    // Se passaram 7 dias mas ainda não passou a sexta, está "pronto"
+    // Ou seja, PODE lançar
+    if (hoje.getDay() === 5) {
+        return 'pode_lancar_hoje'; // NOVO STATUS - É sexta!
     }
     
     return 'pendente';
@@ -229,8 +263,14 @@ function criarLinhaTabela(hora) {
     const tr = document.createElement('tr');
     const status = determinarStatus(hora);
     
+    // Classes de estilo por status
+    tr.classList.add(`status-${status}`);
     if (status === 'atrasado') {
-        tr.classList.add('atrasado');
+        tr.style.background = 'linear-gradient(90deg, #ffebee 0%, white 100%)';
+    } else if (status === 'pode_lancar_hoje') {
+        tr.style.background = 'linear-gradient(90deg, #e8f5e9 0%, white 100%)';
+    } else if (status === 'lancado') {
+        tr.style.background = 'linear-gradient(90deg, #e3f2fd 0%, white 100%)';
     }
     
     // Status
@@ -242,48 +282,109 @@ function criarLinhaTabela(hora) {
     const tdMilitar = document.createElement('td');
     tdMilitar.className = 'militar-cell';
     tdMilitar.innerHTML = `
-        ${hora.militar_nome || 'N/A'}
-        <span class="pm-number">${hora.militar_pm || 'N/A'}</span>
+        <strong>${hora.militar_nome || 'N/A'}</strong>
+        <span class="pm-number" style="display:block;font-size:0.85em;color:#666;">${hora.militar_pm || 'N/A'}</span>
     `;
     tr.appendChild(tdMilitar);
     
-    // Data
+    // Data da Hora Extra
     const tdData = document.createElement('td');
-    tdData.textContent = hora.data || 'N/A';
+    const dataFormatada = hora.data ? new Date(hora.data + 'T12:00:00').toLocaleDateString('pt-BR') : 'N/A';
+    tdData.innerHTML = `<strong>${dataFormatada}</strong>`;
     tr.appendChild(tdData);
     
     // Horas
     const tdHoras = document.createElement('td');
     tdHoras.className = 'horas-cell';
-    tdHoras.textContent = hora.horas || 'N/A';
+    tdHoras.innerHTML = `<span style="font-size:1.1em;font-weight:bold;color:#1565c0;">${hora.horas || 'N/A'}h</span>`;
     tr.appendChild(tdHoras);
     
-    // Lançar em
+    // Coluna "Lançar em" - MELHORADA
     const tdLancar = document.createElement('td');
-    const dataLancamento = hora.data_prevista_lancamento || 'N/A';
-    if (status === 'atrasado') {
-        tdLancar.style.color = '#c62828';
-        tdLancar.style.fontWeight = 'bold';
-    } else if (status === 'lancado') {
-        tdLancar.style.color = '#2e7d32';
-        tdLancar.style.fontWeight = 'bold';
-        tdLancar.textContent = hora.data_lancamento_cad2 || dataLancamento;
+    const dataLimite = hora.data_limite_lancamento;
+    
+    if (status === 'lancado') {
+        // Já foi lançado
+        tdLancar.innerHTML = `
+            <div style="color:#2e7d32;font-weight:bold;">
+                ✅ Lançado em:<br>
+                <span style="font-size:1.1em;">${hora.data_lancamento_cad2 || 'N/A'}</span>
+                ${hora.lancado_por ? `<br><small style="color:#666;">Por: ${hora.lancado_por}</small>` : ''}
+            </div>
+        `;
+    } else if (status === 'atrasado') {
+        // Atrasado
+        const dataLimiteStr = dataLimite ? dataLimite.toLocaleDateString('pt-BR') : 'N/A';
+        tdLancar.innerHTML = `
+            <div style="color:#c62828;font-weight:bold;">
+                ❌ Prazo era:<br>
+                <span style="font-size:1.1em;">${dataLimiteStr}</span>
+            </div>
+        `;
+    } else if (status === 'aguardando') {
+        // Aguardando 7 dias
+        const dataHora = new Date(hora.data);
+        const podeLancarEm = new Date(dataHora);
+        podeLancarEm.setDate(podeLancarEm.getDate() + 7);
+        const diasRestantes = Math.ceil((podeLancarEm - new Date()) / (1000 * 60 * 60 * 24));
+        
+        tdLancar.innerHTML = `
+            <div style="color:#ff8f00;">
+                ⏳ 7 dias em:<br>
+                <span style="font-size:1.1em;">${podeLancarEm.toLocaleDateString('pt-BR')}</span>
+                <br><small style="color:#666;">Faltam ${diasRestantes} dia${diasRestantes > 1 ? 's' : ''}</small>
+            </div>
+        `;
+    } else if (status === 'pode_lancar_hoje') {
+        // Pode lançar HOJE!
+        tdLancar.innerHTML = `
+            <div style="color:#2e7d32;font-weight:bold;animation:pulse 1s infinite;">
+                🚀 HOJE!<br>
+                <span style="font-size:0.9em;">Sexta-feira</span>
+            </div>
+        `;
     } else {
-        tdLancar.textContent = dataLancamento;
+        // Pendente - aguardando a sexta
+        const dataLimiteStr = dataLimite ? dataLimite.toLocaleDateString('pt-BR') : 'N/A';
+        const diasAteLimit = dataLimite ? Math.ceil((dataLimite - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+        
+        tdLancar.innerHTML = `
+            <div style="color:#1565c0;">
+                📅 Lançar até:<br>
+                <span style="font-size:1.1em;font-weight:bold;">${dataLimiteStr}</span>
+                <br><small style="color:#666;">Faltam ${diasAteLimit} dia${diasAteLimit > 1 ? 's' : ''}</small>
+            </div>
+        `;
     }
     tr.appendChild(tdLancar);
     
-    // Motivo
+    // Motivo - COM BOTÃO DE COPIAR INTEGRADO
     const tdMotivo = document.createElement('td');
     tdMotivo.className = 'motivo-cell';
-    tdMotivo.textContent = hora.motivo || 'N/A';
+    const motivoTexto = hora.motivo || 'N/A';
+    const motivoResumido = motivoTexto.length > 50 ? motivoTexto.substring(0, 50) + '...' : motivoTexto;
+    tdMotivo.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span class="motivo-texto" title="${motivoTexto}" style="flex:1;cursor:pointer;" onclick="copiarMotivoRapido(this, '${hora.id}')">${motivoResumido}</span>
+            <button class="btn-copiar-mini" onclick="copiarMotivo('${hora.id}')" title="📋 Copiar motivo completo" style="padding:4px 8px;border:none;background:#e3f2fd;border-radius:4px;cursor:pointer;">📋</button>
+        </div>
+    `;
     tr.appendChild(tdMotivo);
     
     // Ações
     const tdAcoes = document.createElement('td');
     tdAcoes.className = 'actions-cell';
+    
+    const btnConfirmar = status === 'lancado' 
+        ? `<button class="btn-icon btn-confirmar" disabled title="Já lançado" style="opacity:0.5;">✅</button>`
+        : `<button class="btn-icon btn-confirmar" onclick="confirmarLancamento('${hora.id}')" title="✅ Confirmar lançado no CAD2" style="background:#4caf50;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">✅ CAD2</button>`;
+    
     tdAcoes.innerHTML = `
-        <button class="btn-icon btn-copiar" onclick="copiarMotivo('${hora.id}')" title="Copiar motivo">📋</button>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">
+            ${btnConfirmar}
+            <button class="btn-icon btn-expandir" onclick="toggleExpandir(this, '${hora.id}')" title="👁️ Ver detalhes" style="background:#2196f3;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">👁️</button>
+        </div>
+    `;
         <button class="btn-icon btn-confirmar" onclick="confirmarLancamento('${hora.id}')" 
                 ${status === 'lancado' ? 'disabled' : ''} title="Confirmar lançado">✅</button>
         <button class="btn-icon btn-expandir" onclick="toggleExpandir(this)" title="Ver mais">👁️</button>
@@ -295,12 +396,14 @@ function criarLinhaTabela(hora) {
 
 function getStatusBadge(status) {
     const badges = {
-        'atrasado': '<span class="status-tag tag-atrasado">⚠️ ATRASADO</span>',
-        'pendente': '<span class="status-tag tag-pendente">⏳ PENDENTE</span>',
+        'atrasado': '<span class="status-tag tag-atrasado">❌ ATRASADO</span>',
+        'aguardando': '<span class="status-tag tag-aguardando">⏳ AGUARDANDO 7 DIAS</span>',
+        'pendente': '<span class="status-tag tag-pendente">📅 AGUARDANDO SEXTA</span>',
+        'pode_lancar_hoje': '<span class="status-tag tag-pode-lancar">🚀 LANÇAR HOJE!</span>',
         'lancado': '<span class="status-tag tag-lancado">✅ LANÇADO</span>'
     };
     
-    return badges[status] || '';
+    return badges[status] || '<span class="status-tag">❓</span>';
 }
 
 // ============================================
@@ -314,24 +417,119 @@ async function copiarMotivo(id) {
     try {
         await navigator.clipboard.writeText(hora.motivo);
         
-        // Feedback visual
-        const btn = event.target;
-        const textoOriginal = btn.textContent;
-        btn.textContent = '✅';
-        btn.style.background = '#4caf50';
-        
-        setTimeout(() => {
-            btn.textContent = textoOriginal;
-            btn.style.background = '#2196f3';
-        }, 2000);
+        // Feedback visual melhorado
+        mostrarToast('✅ Motivo copiado!', 'success');
         
     } catch (error) {
-        alert('Erro ao copiar: ' + error.message);
+        // Fallback para navegadores mais antigos
+        const textarea = document.createElement('textarea');
+        textarea.value = hora.motivo;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        mostrarToast('✅ Motivo copiado!', 'success');
     }
 }
 
+// Copiar motivo com um clique no texto
+async function copiarMotivoRapido(elemento, id) {
+    const hora = horasSemanais.find(h => h.id === id);
+    if (!hora) return;
+    
+    try {
+        await navigator.clipboard.writeText(hora.motivo);
+        
+        // Feedback visual no próprio elemento
+        const textoOriginal = elemento.textContent;
+        elemento.textContent = '✅ Copiado!';
+        elemento.style.color = '#2e7d32';
+        elemento.style.fontWeight = 'bold';
+        
+        setTimeout(() => {
+            elemento.textContent = textoOriginal;
+            elemento.style.color = '';
+            elemento.style.fontWeight = '';
+        }, 1500);
+        
+    } catch (error) {
+        copiarMotivo(id);
+    }
+}
+
+// Toast de notificação
+function mostrarToast(mensagem, tipo = 'info') {
+    // Remover toast existente
+    const existente = document.getElementById('toast-lancamento');
+    if (existente) existente.remove();
+    
+    const toast = document.createElement('div');
+    toast.id = 'toast-lancamento';
+    
+    const cores = {
+        'success': { bg: '#4caf50', icon: '✅' },
+        'error': { bg: '#f44336', icon: '❌' },
+        'warning': { bg: '#ff9800', icon: '⚠️' },
+        'info': { bg: '#2196f3', icon: 'ℹ️' }
+    };
+    
+    const cor = cores[tipo] || cores.info;
+    
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${cor.bg};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+    toast.textContent = mensagem;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// Adicionar animações de toast
+if (!document.getElementById('toast-animations')) {
+    const style = document.createElement('style');
+    style.id = 'toast-animations';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 async function confirmarLancamento(id) {
-    if (!confirm('Confirmar que foi lançado no CAD2?')) return;
+    // Modal de confirmação melhorado
+    const hora = horasSemanais.find(h => h.id === id);
+    if (!hora) return;
+    
+    const confirmacao = confirm(
+        `✅ CONFIRMAR LANÇAMENTO NO CAD2\n\n` +
+        `Militar: ${hora.militar_nome}\n` +
+        `Data: ${hora.data}\n` +
+        `Horas: ${hora.horas}h\n` +
+        `Motivo: ${hora.motivo?.substring(0, 100)}...\n\n` +
+        `Confirmar que foi lançado no CAD2?`
+    );
+    
+    if (!confirmacao) return;
     
     try {
         const usuario = JSON.parse(sessionStorage.getItem('stic_usuario') || '{}');
@@ -410,20 +608,101 @@ function toggleExpandir(btn) {
 // ============================================
 
 function atualizarEstatisticas() {
+    let aguardando = 0;
     let pendentes = 0;
+    let podeLancarHoje = 0;
     let atrasados = 0;
     let lancados = 0;
     
     horasFiltradasGlobal.forEach(hora => {
         const status = determinarStatus(hora);
-        if (status === 'pendente') pendentes++;
-        if (status === 'atrasado') atrasados++;
-        if (status === 'lancado') lancados++;
+        switch(status) {
+            case 'aguardando': aguardando++; break;
+            case 'pendente': pendentes++; break;
+            case 'pode_lancar_hoje': podeLancarHoje++; break;
+            case 'atrasado': atrasados++; break;
+            case 'lancado': lancados++; break;
+        }
     });
     
-    document.getElementById('stat-pendentes').textContent = pendentes;
-    document.getElementById('stat-atrasados').textContent = atrasados;
-    document.getElementById('stat-lancados').textContent = lancados;
+    // Atualizar elementos se existirem
+    const elPendentes = document.getElementById('stat-pendentes');
+    const elAtrasados = document.getElementById('stat-atrasados');
+    const elLancados = document.getElementById('stat-lancados');
+    
+    if (elPendentes) elPendentes.textContent = aguardando + pendentes + podeLancarHoje;
+    if (elAtrasados) elAtrasados.textContent = atrasados;
+    if (elLancados) elLancados.textContent = lancados;
+    
+    // Criar/atualizar painel de resumo detalhado
+    atualizarPainelResumo(aguardando, pendentes, podeLancarHoje, atrasados, lancados);
+}
+
+// Painel de resumo visual detalhado
+function atualizarPainelResumo(aguardando, pendentes, podeLancarHoje, atrasados, lancados) {
+    let painel = document.getElementById('painel-resumo-lancamento');
+    
+    if (!painel) {
+        painel = document.createElement('div');
+        painel.id = 'painel-resumo-lancamento';
+        painel.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:15px 0;';
+        
+        const tabelaWrapper = document.querySelector('.tabela-wrapper');
+        if (tabelaWrapper) {
+            tabelaWrapper.parentNode.insertBefore(painel, tabelaWrapper);
+        }
+    }
+    
+    const total = aguardando + pendentes + podeLancarHoje + atrasados + lancados;
+    
+    painel.innerHTML = `
+        <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);padding:15px;border-radius:10px;text-align:center;border-left:4px solid #ff9800;">
+            <div style="font-size:2em;font-weight:bold;color:#e65100;">${aguardando}</div>
+            <div style="font-size:0.85em;color:#bf360c;">⏳ Aguardando 7 dias</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);padding:15px;border-radius:10px;text-align:center;border-left:4px solid #2196f3;">
+            <div style="font-size:2em;font-weight:bold;color:#1565c0;">${pendentes}</div>
+            <div style="font-size:0.85em;color:#0d47a1;">📅 Aguardando Sexta</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:15px;border-radius:10px;text-align:center;border-left:4px solid #4caf50;${podeLancarHoje > 0 ? 'animation:pulse 1s infinite;' : ''}">
+            <div style="font-size:2em;font-weight:bold;color:#2e7d32;">${podeLancarHoje}</div>
+            <div style="font-size:0.85em;color:#1b5e20;">🚀 Lançar HOJE!</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#ffebee,#ffcdd2);padding:15px;border-radius:10px;text-align:center;border-left:4px solid #f44336;">
+            <div style="font-size:2em;font-weight:bold;color:#c62828;">${atrasados}</div>
+            <div style="font-size:0.85em;color:#b71c1c;">❌ Atrasados</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:15px;border-radius:10px;text-align:center;border-left:4px solid #3f51b5;">
+            <div style="font-size:2em;font-weight:bold;color:#283593;">${lancados}</div>
+            <div style="font-size:0.85em;color:#1a237e;">✅ Lançados</div>
+        </div>
+    `;
+    
+    // Adicionar CSS de animação se não existir
+    if (!document.getElementById('pulse-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-animation-style';
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(76,175,80,0.4); }
+                100% { transform: scale(1); }
+            }
+            .status-tag {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.85em;
+                font-weight: bold;
+            }
+            .tag-atrasado { background: #ffcdd2; color: #c62828; }
+            .tag-aguardando { background: #ffe0b2; color: #e65100; }
+            .tag-pendente { background: #bbdefb; color: #1565c0; }
+            .tag-pode-lancar { background: #c8e6c9; color: #2e7d32; animation: pulse 1s infinite; }
+            .tag-lancado { background: #c5cae9; color: #283593; }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 // ============================================
