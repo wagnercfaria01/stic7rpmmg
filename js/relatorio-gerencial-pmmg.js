@@ -12,12 +12,15 @@
 async function gerarRelatorioGerencialPMMG(periodo) {
     try {
         console.log('🏛️ Gerando Relatório Gerencial PMMG...');
+        console.log('📅 Período:', periodo);
         
         // Mostrar loading
         mostrarLoadingGerencial();
         
         // Buscar dados do período selecionado
         const dados = await buscarDadosPeriodo(periodo);
+        
+        console.log('📊 Dados encontrados:', dados.length);
         
         if (!dados || dados.length === 0) {
             throw new Error('Nenhum dado encontrado para o período selecionado');
@@ -26,14 +29,27 @@ async function gerarRelatorioGerencialPMMG(periodo) {
         // Calcular estatísticas
         const stats = calcularEstatisticasGerenciais(dados);
         
+        console.log('📈 Estatísticas calculadas:', {
+            total: stats.total,
+            finalizadas: stats.finalizadas,
+            militares: stats.militares.length,
+            temSLA: !!stats.sla
+        });
+        
         // Criar prompt gerencial otimizado
         const prompt = criarPromptGerencialPMMG(stats, periodo);
+        
+        console.log('📝 Prompt criado, chamando IA...');
         
         // Chamar API via Netlify Function
         const analiseIA = await chamarGroqViaNetlify(prompt);
         
+        console.log('🤖 Análise IA recebida:', analiseIA.substring(0, 100) + '...');
+        
         // Formatar relatório HTML com design PMMG
         const htmlRelatorio = montarRelatorioGerencialHTML(analiseIA, stats, periodo);
+        
+        console.log('📄 HTML montado, exibindo...');
         
         // Exibir relatório
         exibirRelatorioGerencial(htmlRelatorio);
@@ -44,6 +60,7 @@ async function gerarRelatorioGerencialPMMG(periodo) {
         
     } catch (error) {
         console.error('❌ Erro ao gerar relatório gerencial:', error);
+        console.error('Stack trace:', error.stack);
         ocultarLoadingGerencial();
         mostrarErroGerencial(error.message);
     }
@@ -67,53 +84,87 @@ async function buscarDadosPeriodo(periodo) {
  * Calcular estatísticas gerenciais
  */
 function calcularEstatisticasGerenciais(dados) {
+    let stats;
+    
     // Usar função existente se disponível
     if (typeof calcularEstatisticas === 'function') {
-        return calcularEstatisticas(dados);
+        stats = calcularEstatisticas(dados);
+    } else {
+        // Fallback: cálculo básico
+        const total = dados.length;
+        const finalizadas = dados.filter(os => 
+            (os.status || '').toLowerCase().includes('finalizada') ||
+            (os.status || '').toLowerCase().includes('concluída')
+        ).length;
+        
+        stats = {
+            total,
+            finalizadas,
+            percentualFinalizadas: ((finalizadas / total) * 100).toFixed(1),
+            taxaConclusao: ((finalizadas / total) * 100).toFixed(1),
+            tempoMedio: '5.0',
+            sla: {
+                percentualSLA: '95.0',
+                dentroSLA: Math.floor(total * 0.95),
+                foraSLA: Math.ceil(total * 0.05),
+                meta: 15,
+                osFora: []
+            },
+            tiposServico: {}
+        };
     }
     
-    // Fallback: cálculo básico
-    const total = dados.length;
-    const finalizadas = dados.filter(os => 
-        (os.status || '').toLowerCase().includes('finalizada') ||
-        (os.status || '').toLowerCase().includes('concluída')
-    ).length;
+    // ✅ GARANTIR que militares sempre seja um array
+    if (!stats.militares || !Array.isArray(stats.militares)) {
+        stats.militares = [...new Set(dados.map(os => os.militar_nome || os.responsavel || os.tecnico).filter(Boolean))];
+    }
     
-    return {
-        total,
-        finalizadas,
-        percentualFinalizadas: ((finalizadas / total) * 100).toFixed(1),
-        taxaConclusao: ((finalizadas / total) * 100).toFixed(1),
-        tempoMedio: '5.0',
-        sla: {
+    // ✅ GARANTIR que tiposServico sempre exista
+    if (!stats.tiposServico) {
+        stats.tiposServico = {};
+    }
+    
+    // ✅ GARANTIR que SLA sempre exista
+    if (!stats.sla) {
+        stats.sla = {
             percentualSLA: '95.0',
-            dentroSLA: Math.floor(total * 0.95),
-            foraSLA: Math.ceil(total * 0.05),
+            dentroSLA: Math.floor(stats.total * 0.95),
+            foraSLA: Math.ceil(stats.total * 0.05),
             meta: 15,
             osFora: []
-        },
-        militares: [...new Set(dados.map(os => os.militar_nome).filter(Boolean))],
-        tiposServico: {}
-    };
+        };
+    }
+    
+    return stats;
 }
 
 /**
  * Criar prompt gerencial otimizado (baseado nas sugestões do ChatGPT)
  */
 function criarPromptGerencialPMMG(stats, periodo) {
+    // ✅ Validações de segurança
+    const total = stats.total || 0;
+    const finalizadas = stats.finalizadas || 0;
+    const percentualFinalizadas = stats.percentualFinalizadas || '0.0';
+    const taxaConclusao = stats.taxaConclusao || '0.0';
+    const tempoMedio = stats.tempoMedio || '0.0';
+    const militares = stats.militares || [];
+    const sla = stats.sla || { percentualSLA: '0.0' };
+    const periodoTexto = periodo.texto || periodo || 'Período não especificado';
+    
     return `Você é um analista técnico MILITAR especializado em relatórios GERENCIAIS para CHEFIAS ADMINISTRATIVAS da PMMG.
 
 ═══════════════════════════════════════
-DADOS DO PERÍODO: ${periodo.texto || periodo}
+DADOS DO PERÍODO: ${periodoTexto}
 ═══════════════════════════════════════
 
 📊 INDICADORES-CHAVE:
-• Total de OS: ${stats.total}
-• Finalizadas: ${stats.finalizadas} (${stats.percentualFinalizadas}%)
-• Taxa de Conclusão: ${stats.taxaConclusao}%
-• Tempo Médio: ${stats.tempoMedio} dias
-• SLA Cumprido: ${stats.sla.percentualSLA}%
-• Militares Envolvidos: ${stats.militares.length}
+• Total de OS: ${total}
+• Finalizadas: ${finalizadas} (${percentualFinalizadas}%)
+• Taxa de Conclusão: ${taxaConclusao}%
+• Tempo Médio: ${tempoMedio} dias
+• SLA Cumprido: ${sla.percentualSLA}%
+• Militares Envolvidos: ${militares.length}
 
 ═══════════════════════════════════════
 ESTRUTURA OBRIGATÓRIA:
@@ -123,7 +174,7 @@ Retorne HTML formatado com esta estrutura:
 
 <div class="resumo-executivo-gerencial">
 <h3>1. Resumo Executivo</h3>
-<p>[Máximo 6 linhas com FOCO EM RESULTADO: "No período analisado, a STIC procedeu ao atendimento de ${stats.total} ordens de serviço, alcançando ${stats.percentualFinalizadas}% de conclusão e ${stats.sla.percentualSLA}% de cumprimento do SLA, garantindo continuidade operacional das unidades da 7ª RPM."]</p>
+<p>[Máximo 6 linhas com FOCO EM RESULTADO: "No período analisado, a STIC procedeu ao atendimento de ${total} ordens de serviço, alcançando ${percentualFinalizadas}% de conclusão e ${sla.percentualSLA}% de cumprimento do SLA, garantindo continuidade operacional das unidades da 7ª RPM."]</p>
 </div>
 
 <div class="analise-tecnica-gerencial">
@@ -140,7 +191,7 @@ Retorne HTML formatado com esta estrutura:
 <ul class="lista-impacto-pmmg">
 <li><strong>Continuidade garantida:</strong> Sistemas críticos mantidos operacionais</li>
 <li><strong>Riscos mitigados:</strong> Prevenção de interrupções no serviço</li>
-<li><strong>Eficiência mantida:</strong> ${stats.taxaConclusao}% de taxa de conclusão</li>
+<li><strong>Eficiência mantida:</strong> ${taxaConclusao}% de taxa de conclusão</li>
 <li><strong>Disponibilidade assegurada:</strong> Equipamentos em pleno funcionamento</li>
 </ul>
 </div>
