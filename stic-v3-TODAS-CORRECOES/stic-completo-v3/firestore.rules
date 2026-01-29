@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regras para ordens de serviço
+    match /ordens_servico/{documento} {
+      allow read: if true; // Todos podem ler
+      allow write: if true; // Todos podem escrever (você pode restringir depois)
+    }
+    
+    // Regras para materiais
+    match /materiais/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Regras para entradas
+    match /entradas/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Regras para saídas
+    match /saidas/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Regras para assinaturas
+    match /assinaturas/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Regras para usuários/militares
+    match /usuarios/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Regras para horas extras
+    match /horas_extras/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    match /militares_horas/{documento} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Permitir tudo por padrão (ATENÇÃO: mude isso em produção!)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
