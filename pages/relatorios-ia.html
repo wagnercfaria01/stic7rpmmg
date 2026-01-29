@@ -453,24 +453,96 @@
         
         <!-- ========== NOVO: BOTÃO RELATÓRIO GERENCIAL PMMG ========== -->
         <div style="background:linear-gradient(135deg, #B8860B, #DAA520);padding:1.5rem;border-radius:12px;margin:1.5rem 0;border:3px solid #1a1a1a;box-shadow:0 4px 12px rgba(184,134,11,0.3);">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-                <div>
-                    <h3 style="color:#1a1a1a;margin:0 0 0.5rem 0;font-size:1.3em;display:flex;align-items:center;gap:10px;">
-                        🏛️ Relatório Gerencial PMMG
-                        <span style="background:#1a1a1a;color:#DAA520;padding:4px 12px;border-radius:20px;font-size:0.7em;font-weight:600;">NOVO</span>
-                    </h3>
-                    <p style="color:#2c2c2c;margin:0;font-weight:600;">
-                        📋 Formato institucional otimizado para apresentação à chefia militar<br>
-                        ✅ Design profissional com cores oficiais PMMG<br>
-                        🎯 Foco em resultado e impacto operacional
-                    </p>
-                </div>
+            <div style="text-align:center;margin-bottom:1rem;">
+                <h3 style="color:#1a1a1a;margin:0 0 0.5rem 0;font-size:1.5em;display:flex;align-items:center;justify-content:center;gap:10px;">
+                    🏛️ Relatório Gerencial PMMG
+                    <span style="background:#1a1a1a;color:#DAA520;padding:4px 12px;border-radius:20px;font-size:0.6em;font-weight:600;">NOVO</span>
+                </h3>
+                <p style="color:#2c2c2c;margin:0;font-weight:600;font-size:0.95em;">
+                    📋 Formato institucional otimizado para chefia militar • ✅ Análise REAL das OS • 🎯 Foco em resultado
+                </p>
+            </div>
+            
+            <!-- SELETORES DE PERÍODO -->
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;">
+                <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 7 dias', dias: 7})" 
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 7 Dias
+                </button>
                 <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 15 dias', dias: 15})" 
-                        style="padding:1rem 2rem;background:#1a1a1a;color:#DAA520;border:none;border-radius:8px;font-size:1.1em;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all 0.3s ease;white-space:nowrap;">
-                    🚀 Gerar Relatório Gerencial
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 15 Dias
+                </button>
+                <button onclick="gerarRelatorioGerencialPMMG({texto: 'Últimos 30 dias', dias: 30})" 
+                        style="padding:0.75rem 1.5rem;background:#1a1a1a;color:#DAA520;border:2px solid #DAA520;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📅 30 Dias
+                </button>
+                <button onclick="mostrarFiltroPersonalizadoGerencial()" 
+                        style="padding:0.75rem 1.5rem;background:#6f42c1;color:white;border:2px solid #6f42c1;border-radius:8px;font-size:0.95em;font-weight:700;cursor:pointer;transition:all 0.3s ease;">
+                    📆 Personalizado
                 </button>
             </div>
+            
+            <!-- FILTRO PERSONALIZADO (oculto) -->
+            <div id="filtroPersonalizadoGerencial" style="display:none;background:rgba(26,26,26,0.1);padding:1rem;border-radius:8px;margin-top:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
+                    <div>
+                        <label style="display:block;color:#1a1a1a;font-weight:600;margin-bottom:5px;font-size:0.9em;">Data Início:</label>
+                        <input type="date" id="dataInicioGerencial" style="width:100%;padding:0.5rem;border:2px solid #1a1a1a;border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block;color:#1a1a1a;font-weight:600;margin-bottom:5px;font-size:0.9em;">Data Fim:</label>
+                        <input type="date" id="dataFimGerencial" style="width:100%;padding:0.5rem;border:2px solid #1a1a1a;border-radius:6px;">
+                    </div>
+                    <button onclick="gerarRelatorioGerencialPersonalizado()" 
+                            style="padding:0.5rem 1.5rem;background:#1a1a1a;color:#DAA520;border:none;border-radius:6px;font-weight:700;cursor:pointer;height:fit-content;">
+                        🚀 Gerar
+                    </button>
+                </div>
+            </div>
         </div>
+        
+        <script>
+        // Funções auxiliares para filtro personalizado
+        function mostrarFiltroPersonalizadoGerencial() {
+            const filtro = document.getElementById('filtroPersonalizadoGerencial');
+            if (filtro.style.display === 'none') {
+                filtro.style.display = 'block';
+                // Definir data padrão
+                const hoje = new Date();
+                const umMesAtras = new Date();
+                umMesAtras.setMonth(umMesAtras.getMonth() - 1);
+                document.getElementById('dataInicioGerencial').valueAsDate = umMesAtras;
+                document.getElementById('dataFimGerencial').valueAsDate = hoje;
+            } else {
+                filtro.style.display = 'none';
+            }
+        }
+        
+        function gerarRelatorioGerencialPersonalizado() {
+            const dataInicio = document.getElementById('dataInicioGerencial').value;
+            const dataFim = document.getElementById('dataFimGerencial').value;
+            
+            if (!dataInicio || !dataFim) {
+                alert('Por favor, selecione ambas as datas!');
+                return;
+            }
+            
+            const inicio = new Date(dataInicio);
+            const fim = new Date(dataFim);
+            const diffTime = Math.abs(fim - inicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const periodo = {
+                texto: `${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`,
+                dias: diffDays,
+                dataInicio: dataInicio,
+                dataFim: dataFim
+            };
+            
+            gerarRelatorioGerencialPMMG(periodo);
+        }
+        </script>
         
         <!-- ========== NOVO: FILTRO POR UNIDADE ========== -->
         <div style="background:#e7f3ff;padding:1rem;border-radius:8px;margin:1rem 0;border:2px solid #0066cc;">

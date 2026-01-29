@@ -17,13 +17,13 @@ async function gerarRelatorioGerencialPMMG(periodo) {
         // Mostrar loading
         mostrarLoadingGerencial();
         
-        // Buscar dados do período selecionado
+        // Buscar dados do período selecionado (OS REAIS)
         const dados = await buscarDadosPeriodo(periodo);
         
         console.log('📊 Dados encontrados:', dados.length);
         
         if (!dados || dados.length === 0) {
-            throw new Error('Nenhum dado encontrado para o período selecionado');
+            throw new Error('Nenhuma ordem de serviço encontrada para o período selecionado');
         }
         
         // Calcular estatísticas
@@ -33,13 +33,14 @@ async function gerarRelatorioGerencialPMMG(periodo) {
             total: stats.total,
             finalizadas: stats.finalizadas,
             militares: stats.militares.length,
-            temSLA: !!stats.sla
+            temSLA: !!stats.sla,
+            tiposServico: Object.keys(stats.tiposServico).length
         });
         
-        // Criar prompt gerencial otimizado
-        const prompt = criarPromptGerencialPMMG(stats, periodo);
+        // ✅ Criar prompt gerencial otimizado COM OS REAIS
+        const prompt = criarPromptGerencialPMMG(stats, periodo, dados);
         
-        console.log('📝 Prompt criado, chamando IA...');
+        console.log('📝 Prompt criado com', dados.length, 'OS reais, chamando IA...');
         
         // Chamar API via Netlify Function
         const analiseIA = await chamarGroqViaNetlify(prompt);
@@ -67,21 +68,60 @@ async function gerarRelatorioGerencialPMMG(periodo) {
 }
 
 /**
- * Buscar dados do período
+ * Buscar dados do período - BUSCA OS REAIS DO FIREBASE
  */
 async function buscarDadosPeriodo(periodo) {
-    // Usar função existente do sistema
-    if (typeof buscarOSPorPeriodo === 'function') {
-        return await buscarOSPorPeriodo(periodo);
-    }
+    console.log('🔍 Buscando OS do período:', periodo);
     
-    // Fallback: buscar do Firebase direto
-    const snapshot = await db.collection('ordens_servico').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const dias = periodo.dias || 15;
+    const dataFim = new Date();
+    const dataInicio = new Date();
+    dataInicio.setDate(dataInicio.getDate() - dias);
+    
+    console.log('📅 Data início:', dataInicio.toLocaleDateString('pt-BR'));
+    console.log('📅 Data fim:', dataFim.toLocaleDateString('pt-BR'));
+    
+    try {
+        // Buscar todas as OS
+        const snapshot = await db.collection('ordens_servico')
+            .orderBy('data_abertura', 'desc')
+            .get();
+        
+        // Filtrar por período
+        const osPeriodo = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(os => {
+                // Tentar várias fontes de data
+                const dataOS = os.data_abertura || os.data_criacao || os.created_at;
+                
+                if (!dataOS) return false;
+                
+                // Converter para Date
+                let dataOSDate;
+                if (dataOS.toDate) {
+                    dataOSDate = dataOS.toDate();
+                } else if (typeof dataOS === 'string') {
+                    dataOSDate = new Date(dataOS);
+                } else {
+                    return false;
+                }
+                
+                // Verificar se está no período
+                return dataOSDate >= dataInicio && dataOSDate <= dataFim;
+            });
+        
+        console.log('✅ OS encontradas no período:', osPeriodo.length);
+        
+        return osPeriodo;
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar OS:', error);
+        throw error;
+    }
 }
 
 /**
- * Calcular estatísticas gerenciais
+ * Calcular estatísticas gerenciais - COM DADOS REAIS
  */
 function calcularEstatisticasGerenciais(dados) {
     let stats;
@@ -109,8 +149,7 @@ function calcularEstatisticasGerenciais(dados) {
                 foraSLA: Math.ceil(total * 0.05),
                 meta: 15,
                 osFora: []
-            },
-            tiposServico: {}
+            }
         };
     }
     
@@ -119,9 +158,14 @@ function calcularEstatisticasGerenciais(dados) {
         stats.militares = [...new Set(dados.map(os => os.militar_nome || os.responsavel || os.tecnico).filter(Boolean))];
     }
     
-    // ✅ GARANTIR que tiposServico sempre exista
-    if (!stats.tiposServico) {
-        stats.tiposServico = {};
+    // ✅ CALCULAR TIPOS DE SERVIÇO REAIS
+    if (!stats.tiposServico || Object.keys(stats.tiposServico).length === 0) {
+        const tiposMap = {};
+        dados.forEach(os => {
+            const tipo = os.tipo_servico || os.tipo_equipamento || os.categoria || 'Outros serviços';
+            tiposMap[tipo] = (tiposMap[tipo] || 0) + 1;
+        });
+        stats.tiposServico = tiposMap;
     }
     
     // ✅ GARANTIR que SLA sempre exista
@@ -135,13 +179,15 @@ function calcularEstatisticasGerenciais(dados) {
         };
     }
     
+    console.log('📊 Tipos de serviço encontrados:', Object.keys(stats.tiposServico));
+    
     return stats;
 }
 
 /**
- * Criar prompt gerencial otimizado (baseado nas sugestões do ChatGPT)
+ * Criar prompt gerencial otimizado - COM OS REAIS
  */
-function criarPromptGerencialPMMG(stats, periodo) {
+function criarPromptGerencialPMMG(stats, periodo, dadosOS) {
     // ✅ Validações de segurança
     const total = stats.total || 0;
     const finalizadas = stats.finalizadas || 0;
@@ -152,13 +198,56 @@ function criarPromptGerencialPMMG(stats, periodo) {
     const sla = stats.sla || { percentualSLA: '0.0' };
     const periodoTexto = periodo.texto || periodo || 'Período não especificado';
     
+    // ✅ PREPARAR DETALHES REAIS DAS OS
+    let detalhesOS = '';
+    
+    if (dadosOS && dadosOS.length > 0) {
+        detalhesOS = '\n📋 ORDENS DE SERVIÇO EXECUTADAS (DETALHES REAIS):\n';
+        detalhesOS += '═══════════════════════════════════════\n';
+        
+        dadosOS.forEach((os, index) => {
+            const numero = os.numero || os.id?.substring(0, 8).toUpperCase() || `OS-${index + 1}`;
+            const tipo = os.tipo_servico || os.tipo_equipamento || 'Não especificado';
+            const desc = (os.descricao || os.problema || 'Sem descrição').substring(0, 100);
+            const status = os.status || 'Em andamento';
+            const unidade = os.unidade || os.local || 'N/A';
+            const responsavel = os.militar_nome || os.responsavel || os.tecnico || 'N/A';
+            const obs = os.observacoes || os.solucao || '';
+            
+            detalhesOS += `\n${index + 1}. OS ${numero}\n`;
+            detalhesOS += `   • Tipo: ${tipo}\n`;
+            detalhesOS += `   • Descrição: ${desc}\n`;
+            detalhesOS += `   • Status: ${status}\n`;
+            detalhesOS += `   • Unidade: ${unidade}\n`;
+            detalhesOS += `   • Responsável: ${responsavel}\n`;
+            if (obs) {
+                detalhesOS += `   • Solução/Obs: ${obs.substring(0, 150)}\n`;
+            }
+        });
+    }
+    
+    // ✅ TIPOS DE SERVIÇO REAIS
+    let tiposServico = '';
+    if (stats.tiposServico && Object.keys(stats.tiposServico).length > 0) {
+        tiposServico = '\n🔧 TIPOS DE SERVIÇO EXECUTADOS:\n';
+        Object.entries(stats.tiposServico)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .forEach(([tipo, qtd]) => {
+                const percentual = ((qtd / total) * 100).toFixed(1);
+                tiposServico += `• ${tipo}: ${qtd} OS (${percentual}%)\n`;
+            });
+    }
+    
     return `Você é um analista técnico MILITAR especializado em relatórios GERENCIAIS para CHEFIAS ADMINISTRATIVAS da PMMG.
+
+Analise os dados REAIS abaixo e crie um relatório VERDADEIRO baseado no trabalho que FOI EFETIVAMENTE REALIZADO.
 
 ═══════════════════════════════════════
 DADOS DO PERÍODO: ${periodoTexto}
 ═══════════════════════════════════════
 
-📊 INDICADORES-CHAVE:
+📊 INDICADORES-CHAVE (REAIS):
 • Total de OS: ${total}
 • Finalizadas: ${finalizadas} (${percentualFinalizadas}%)
 • Taxa de Conclusão: ${taxaConclusao}%
@@ -166,33 +255,65 @@ DADOS DO PERÍODO: ${periodoTexto}
 • SLA Cumprido: ${sla.percentualSLA}%
 • Militares Envolvidos: ${militares.length}
 
+${tiposServico}
+
+${detalhesOS}
+
 ═══════════════════════════════════════
-ESTRUTURA OBRIGATÓRIA:
+INSTRUÇÕES PARA ANÁLISE:
 ═══════════════════════════════════════
 
-Retorne HTML formatado com esta estrutura:
+ANALISE AS OS REAIS ACIMA e crie um relatório que:
+
+1️⃣ RESUMO EXECUTIVO (6 linhas):
+   • Mencione TIPOS DE SERVIÇO que foram REALMENTE executados
+   • Use os NÚMEROS reais (${total} OS, ${percentualFinalizadas}% conclusão)
+   • Cite UNIDADES que foram atendidas (veja nas OS acima)
+   • Foque em RESULTADO e IMPACTO real
+   • Use linguagem militar formal
+
+2️⃣ ANÁLISE TÉCNICA:
+   • Liste os TIPOS DE SERVIÇO mais executados (veja acima)
+   • Identifique PROBLEMAS que foram resolvidos (veja descrições)
+   • Mencione AÇÕES CORRETIVAS que foram tomadas (veja soluções)
+
+3️⃣ IMPACTO OPERACIONAL:
+   • Baseado nas OS: que CONTINUIDADE foi garantida?
+   • Que RISCOS foram evitados? (veja os problemas resolvidos)
+   • Que BENEFÍCIOS foram gerados? (seja específico)
+
+4️⃣ CONCLUSÃO GERENCIAL:
+   • Situação: ESTÁVEL/ATENÇÃO/CRÍTICA (baseado no SLA ${sla.percentualSLA}%)
+   • Gargalos: identifique SE HOUVER algum padrão de problemas
+   • Recomendações: baseadas no que foi observado
+
+═══════════════════════════════════════
+FORMATO DE RESPOSTA:
+═══════════════════════════════════════
+
+Retorne APENAS HTML puro com esta estrutura:
 
 <div class="resumo-executivo-gerencial">
 <h3>1. Resumo Executivo</h3>
-<p>[Máximo 6 linhas com FOCO EM RESULTADO: "No período analisado, a STIC procedeu ao atendimento de ${total} ordens de serviço, alcançando ${percentualFinalizadas}% de conclusão e ${sla.percentualSLA}% de cumprimento do SLA, garantindo continuidade operacional das unidades da 7ª RPM."]</p>
+<p>[Escreva 6 linhas REAIS baseadas nas OS acima. Mencione os tipos de serviço executados, unidades atendidas, números concretos. Exemplo: "No período analisado, a STIC procedeu ao atendimento de ${total} ordens de serviço, com foco em [citar tipos reais], alcançando ${percentualFinalizadas}% de conclusão e garantindo continuidade operacional das unidades [citar unidades reais]."]</p>
 </div>
 
 <div class="analise-tecnica-gerencial">
 <h3>2. Análise Técnica</h3>
 <ul class="lista-impacto-pmmg">
-<li><strong>Principais atendimentos:</strong> Manutenção de equipamentos e sistemas de TI</li>
-<li><strong>Pontos críticos neutralizados:</strong> Falhas de rede e indisponibilidade de sistemas</li>
-<li><strong>Ações corretivas:</strong> Implementação de soluções técnicas definitivas</li>
+<li><strong>Principais atendimentos:</strong> [Listar tipos REAIS: exemplo: Manutenção preventiva (X OS), Instalação de software (Y OS), etc]</li>
+<li><strong>Pontos críticos neutralizados:</strong> [Baseado nas descrições reais das OS - cite problemas específicos]</li>
+<li><strong>Ações corretivas:</strong> [Baseado nas soluções reais - cite o que foi feito]</li>
 </ul>
 </div>
 
 <div class="impacto-operacional-gerencial">
 <h3>3. Impacto Operacional</h3>
 <ul class="lista-impacto-pmmg">
-<li><strong>Continuidade garantida:</strong> Sistemas críticos mantidos operacionais</li>
-<li><strong>Riscos mitigados:</strong> Prevenção de interrupções no serviço</li>
-<li><strong>Eficiência mantida:</strong> ${taxaConclusao}% de taxa de conclusão</li>
-<li><strong>Disponibilidade assegurada:</strong> Equipamentos em pleno funcionamento</li>
+<li><strong>Continuidade garantida:</strong> [Especifique baseado nas OS - ex: "Sistema X mantido operacional", "Rede da unidade Y restabelecida"]</li>
+<li><strong>Riscos mitigados:</strong> [Especifique - ex: "Evitada indisponibilidade de sistema crítico", "Prevenida perda de dados"]</li>
+<li><strong>Eficiência mantida:</strong> ${taxaConclusao}% de taxa de conclusão no período</li>
+<li><strong>Disponibilidade assegurada:</strong> [Especifique baseado nos tipos de serviço - equipamentos/sistemas mantidos]</li>
 </ul>
 </div>
 
@@ -201,25 +322,24 @@ Retorne HTML formatado com esta estrutura:
 <div class="conclusao-grid-pmmg">
 <div class="conclusao-item-pmmg situacao">
 <h4>🎯 Situação do Setor</h4>
-<p><strong>ESTÁVEL E SOB CONTROLE</strong><br>Todas as demandas atendidas dentro dos prazos estabelecidos.</p>
+<p><strong>[ESTÁVEL/ATENÇÃO/CRÍTICA - baseado no SLA ${sla.percentualSLA}%]</strong><br>[Justifique baseado nos dados reais]</p>
 </div>
 <div class="conclusao-item-pmmg gargalo">
 <h4>⚠️ Gargalos / Atenção</h4>
-<p>Nenhum gargalo crítico identificado no período. Monitoramento contínuo mantido.</p>
+<p>[Se houver padrão de problemas nas OS, cite. Senão: "Nenhum gargalo crítico identificado"]</p>
 </div>
 <div class="conclusao-item-pmmg recomendacao">
 <h4>💡 Recomendações</h4>
-<p>Manter ações preventivas para garantir disponibilidade contínua dos sistemas.</p>
+<p>[Baseado nos dados: sugestões preventivas ou de melhoria]</p>
 </div>
 </div>
 </div>
 
-INSTRUÇÕES:
-✅ Use linguagem FORMAL MILITAR
-✅ Foque em RESULTADO, não processo
-✅ Seja DIRETO e OBJETIVO
-✅ Use dados fornecidos
-✅ NÃO inclua \`\`\`html
+CRÍTICO: 
+✅ Use APENAS informações REAIS das OS fornecidas
+✅ NÃO invente dados ou serviços que não foram listados
+✅ Seja ESPECÍFICO e VERDADEIRO
+✅ NÃO inclua \`\`\`html ou markdown
 ✅ Retorne apenas HTML puro`;
 }
 
