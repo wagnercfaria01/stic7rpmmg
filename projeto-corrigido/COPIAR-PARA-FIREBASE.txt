@@ -1,0 +1,146 @@
+# 🔥 COPIE ESTE CONTEÚDO PARA O FIREBASE
+
+═══════════════════════════════════════════════════════════════
+IMPORTANTE: Copie TODO o conteúdo abaixo (começando com "rules_version")
+═══════════════════════════════════════════════════════════════
+
+ONDE COLAR:
+1. https://console.firebase.google.com/
+2. Projeto: stic7rpmmg-948b1
+3. Firestore Database → Aba "Regras"
+4. Apagar tudo que está lá
+5. Colar o conteúdo abaixo
+6. Publicar
+
+═══════════════════════════════════════════════════════════════
+COPIE A PARTIR DAQUI (incluindo esta linha):
+═══════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Função auxiliar: usuário autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // COLEÇÕES PRINCIPAIS - LEITURA E ESCRITA COMPLETA
+    // ═══════════════════════════════════════════════════════════
+    
+    // Ordens de Serviço
+    match /ordens_servico/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // OS Recorrentes
+    match /os_recorrentes/{recId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Horas Extras
+    match /horas_extras/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Militares que recebem horas
+    match /militares_horas/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Materiais - Entradas
+    match /entradas_material/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Materiais - Saídas
+    match /saidas/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Empréstimos
+    match /emprestimos/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Assinaturas
+    match /assinaturas/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Configurações
+    match /configuracoes/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Notificações
+    match /notificacoes/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Usuários
+    match /usuarios/{userId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Recebedores (para Telegram, etc)
+    match /usuarios_recebedores/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Telegram Users
+    match /telegram_users/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // LOGS - APENAS CRIAR E LER (não editar/deletar)
+    // ═══════════════════════════════════════════════════════════
+    
+    // Logs de Auditoria
+    match /logs_auditoria/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Logs do Sistema
+    match /logs_sistema/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Logs de Backup
+    match /backups_log/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Logs de Email
+    match /logs_email/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Logs de Exclusão
+    match /logs_exclusoes/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════════════
+FIM - Parar de copiar aqui
+═══════════════════════════════════════════════════════════════
+
+DEPOIS DE COLAR NO FIREBASE:
+✅ Clicar em "Publicar" (Publish)
+✅ Aguardar 10 segundos
+✅ Atualizar seu site (F5)
+✅ Testar - deve funcionar tudo!
